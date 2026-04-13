@@ -1,2 +1,22 @@
 # portfolio-main
-Manufacturing DX &amp; QC Automation Portfolio
+품질관리 및 생산 데이터 실무 경험을 기반으로  
+제조 현장의 반복 업무를 웹 시스템과 자동화로 개선했습니다.
+
+## 대표 프로젝트
+- BOM 관리 시스템
+- QC Management 포털
+- 시험성적서 MES 자동화
+
+## 핵심 성과
+- 시험성적서 작성 4시간 → 5분
+- BOM 서버 구축(실시간 업데이트 가능, 직관적 UI/UX)
+- 품질 관리 시스템 구축(불량 현황, 영업 요청 및 이슈사항 대시보드 구축, AI 불량집계 분석기능 등)
+
+## 사용 기술
+- Python
+- VBA
+- SQL
+- React
+- MES
+- JavaScript
+- Cloud Server 구축
