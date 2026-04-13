@@ -1,0 +1,2038 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QC Management - 품질관리 업무관리</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #F1F5F9; color: #1E293B; min-height: 100vh;
+}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+
+.header { background: #fff; border-bottom: 1px solid #E2E8F0; padding: 0 24px; position: sticky; top: 0; z-index: 100; }
+.header-inner { max-width: 1200px; margin: 0 auto; }
+.header-top { display: flex; align-items: center; padding: 16px 0 0; gap: 12px; }
+.logo { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #1E40AF, #3B82F6); display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; font-weight: 800; }
+.header-title { font-size: 18px; font-weight: 800; color: #1E293B; letter-spacing: -0.3px; }
+.header-sub { font-size: 11px; color: #94A3B8; font-weight: 500; }
+.tabs { display: flex; gap: 0; margin-top: 12px; overflow-x: auto; }
+.tab-btn { padding: 10px 16px; border: none; background: none; cursor: pointer; font-size: 13px; font-weight: 500; font-family: inherit; color: #64748B; border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+.tab-btn.active { color: #1E40AF; font-weight: 700; border-bottom-color: #1E40AF; }
+.tab-btn:hover:not(.active) { color: #334155; }
+.tab-count { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; background: #E2E8F0; color: #64748B; }
+.tab-btn.active .tab-count { background: #1E40AF; color: #fff; }
+.content { max-width: 1200px; margin: 0 auto; padding: 20px 24px 40px; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.stat-card { background: #fff; border-radius: 12px; padding: 14px 16px; border: 1px solid #E2E8F0; display: flex; align-items: center; gap: 12px; }
+.stat-icon { font-size: 22px; }
+.stat-label { font-size: 11px; color: #94A3B8; font-weight: 600; margin-bottom: 2px; }
+.stat-value { font-size: 22px; font-weight: 800; }
+
+.dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 28px; }
+.dash-card { background: #fff; border-radius: 14px; padding: 20px; cursor: pointer; border: 1px solid #E2E8F0; transition: all 0.2s; position: relative; overflow: hidden; }
+.dash-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.dash-card .bg-circle { position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; opacity: 0.6; }
+.dash-card-icon { font-size: 28px; margin-bottom: 10px; }
+.dash-card-title { font-size: 15px; font-weight: 700; color: #1E293B; margin-bottom: 4px; }
+.dash-card-desc { font-size: 12px; color: #94A3B8; margin-bottom: 12px; }
+.dash-card-count { font-size: 28px; font-weight: 800; }
+.dash-card-unit { font-size: 12px; color: #94A3B8; }
+
+.filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.filters .spacer { flex: 1; }
+
+input, select, textarea { font-family: inherit; font-size: 14px; padding: 10px 12px; border-radius: 8px; border: 1px solid #CBD5E1; outline: none; transition: border-color 0.15s; }
+input:focus, select:focus, textarea:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+select { background: #fff; }
+textarea { resize: vertical; }
+.input-sm { width: 240px; }
+.input-md { width: 260px; }
+.select-sm { width: 120px; }
+.select-md { width: 140px; }
+.input-full { width: 100%; }
+
+.btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; transition: all 0.15s; }
+.btn-primary { background: #1E40AF; color: #fff; }
+.btn-primary:hover { background: #1E3A8A; }
+.btn-secondary { background: #F1F5F9; color: #475569; }
+.btn-secondary:hover { background: #E2E8F0; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-danger { background: #FEE2E2; color: #DC2626; }
+.btn-danger:hover { background: #FECACA; }
+.btn-icon { border: none; background: none; cursor: pointer; font-size: 14px; padding: 4px; transition: opacity 0.15s; }
+.btn-icon:hover { opacity: 0.7; }
+
+.table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid #E2E8F0; background: #fff; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead tr { background: #F8FAFC; }
+th { padding: 10px 12px; text-align: left; font-weight: 700; color: #64748B; font-size: 12px; border-bottom: 1px solid #E2E8F0; white-space: nowrap; }
+td { padding: 10px 12px; }
+tbody tr { border-bottom: 1px solid #F1F5F9; transition: background 0.1s; }
+tbody tr:hover { background: #F8FAFC; }
+.td-bold { font-weight: 600; color: #1E293B; }
+.td-mono { font-family: monospace; font-size: 12px; }
+.td-dim { font-size: 12px; color: #64748B; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.td-right { text-align: right; }
+.td-nowrap { white-space: nowrap; }
+.td-sub { font-size: 11px; color: #94A3B8; }
+.td-overdue { color: #DC2626; font-weight: 700; }
+.empty-row { padding: 40px; text-align: center; color: #94A3B8; }
+
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.badge-대기 { background: #FEF3C7; color: #92400E; border: 1px solid #F59E0B; }
+.badge-진행중 { background: #DBEAFE; color: #1E40AF; border: 1px solid #3B82F6; }
+.badge-완료 { background: #D1FAE5; color: #065F46; border: 1px solid #10B981; }
+.badge-보류 { background: #FEE2E2; color: #991B1B; border: 1px solid #EF4444; }
+.badge-긴급 { background: #FDE8E8; color: #9B1C1C; border: 1px solid #DC2626; }
+.badge-합격 { background: #D1FAE5; color: #065F46; }
+.badge-불합격 { background: #FEE2E2; color: #991B1B; }
+.badge-조건부합격 { background: #FEF3C7; color: #92400E; }
+.badge-type { padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; background: #F0F9FF; color: #0369A1; }
+.badge-category { padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; background: #EDE9FE; color: #5B21B6; }
+
+.priority { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; }
+.priority-dot { width: 8px; height: 8px; border-radius: 50%; }
+.priority-high { color: #EF4444; }
+.priority-high .priority-dot { background: #EF4444; }
+.priority-medium { color: #F59E0B; }
+.priority-medium .priority-dot { background: #F59E0B; }
+.priority-low { color: #6B7280; }
+.priority-low .priority-dot { background: #6B7280; }
+
+.card-list { display: grid; gap: 12px; }
+.card-item { background: #fff; border-radius: 12px; border: 1px solid #E2E8F0; padding: 16px; transition: box-shadow 0.15s; }
+.card-item:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.card-tags { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.card-meta { display: flex; gap: 16px; font-size: 13px; color: #64748B; margin-bottom: 8px; flex-wrap: wrap; }
+.card-meta strong { color: #1E293B; }
+.card-content { font-size: 14px; color: #334155; line-height: 1.6; }
+.card-action { margin-top: 8px; padding: 8px 12px; background: #F0FDF4; border-radius: 8px; font-size: 13px; color: #166534; }
+
+.alert-banner { background: #FFF7ED; border: 1px solid #FDBA74; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; color: #9A3412; display: flex; align-items: center; gap: 8px; }
+
+.modal-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; background: rgba(15,23,42,0.55); backdrop-filter: blur(4px); }
+.modal-box { background: #fff; border-radius: 16px; max-height: 88vh; overflow: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.25); animation: modalIn 0.2s ease-out; }
+@keyframes modalIn { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.modal-header { padding: 20px 24px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: #fff; z-index: 1; border-radius: 16px 16px 0 0; }
+.modal-title { font-size: 17px; font-weight: 700; color: #1E293B; }
+.modal-close { border: none; background: #F1F5F9; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 18px; color: #64748B; display: flex; align-items: center; justify-content: center; }
+.modal-body { padding: 24px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.field { margin-bottom: 16px; }
+.field-label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #475569; }
+.field-label .req { color: #EF4444; }
+
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.detail-label { font-size: 11px; color: #94A3B8; font-weight: 600; margin-bottom: 2px; }
+.detail-value { font-size: 14px; color: #1E293B; font-weight: 500; }
+.detail-section { margin-bottom: 12px; }
+.detail-section-label { font-size: 11px; color: #94A3B8; font-weight: 600; margin-bottom: 4px; }
+.detail-box { font-size: 13px; color: #334155; background: #F8FAFC; border-radius: 8px; padding: 12px; }
+
+.timeline { border-left: 2px solid #E2E8F0; padding-left: 16px; }
+.timeline-item { margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.timeline-dot { width: 8px; height: 8px; border-radius: 50%; background: #3B82F6; margin-left: -20px; flex-shrink: 0; }
+.timeline-date { font-size: 12px; color: #64748B; }
+.timeline-action { font-size: 13px; font-weight: 600; color: #334155; }
+
+.summary-box { background: #fff; border-radius: 14px; border: 1px solid #E2E8F0; padding: 20px; }
+.summary-title { font-size: 15px; font-weight: 700; color: #1E293B; margin-bottom: 12px; }
+.summary-text { font-size: 13px; color: #64748B; line-height: 1.8; }
+
+/* ─── 파일 업로드 영역 ─── */
+.upload-zone {
+  border: 2px dashed #CBD5E1; border-radius: 12px; padding: 20px; text-align: center;
+  cursor: pointer; transition: all 0.2s; background: #FAFBFC; margin-top: 8px;
+}
+.upload-zone:hover, .upload-zone.dragover { border-color: #3B82F6; background: #EFF6FF; }
+.upload-zone-icon { font-size: 32px; margin-bottom: 8px; }
+.upload-zone-text { font-size: 13px; color: #64748B; }
+.upload-zone-hint { font-size: 11px; color: #94A3B8; margin-top: 4px; }
+
+.file-list { margin-top: 12px; }
+.file-item {
+  display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+  background: #F8FAFC; border-radius: 8px; margin-bottom: 6px; border: 1px solid #E2E8F0;
+}
+.file-thumb {
+  width: 40px; height: 40px; border-radius: 6px; object-fit: cover;
+  background: #E2E8F0; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0; overflow: hidden;
+}
+.file-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.file-info { flex: 1; min-width: 0; }
+.file-name { font-size: 13px; font-weight: 600; color: #1E293B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-meta { font-size: 11px; color: #94A3B8; }
+.file-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+.attach-count {
+  display: inline-flex; align-items: center; gap: 3px; font-size: 11px;
+  color: #3B82F6; font-weight: 600;
+}
+
+/* 이미지 미리보기 모달 */
+.preview-overlay {
+  position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.85);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.preview-overlay img {
+  max-width: 90vw; max-height: 90vh; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+@media (max-width: 640px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .detail-grid { grid-template-columns: 1fr; }
+  .header { padding: 0 12px; }
+  .content { padding: 12px 12px 40px; }
+  .modal-box { width: calc(100vw - 16px) !important; }
+  .input-sm, .input-md { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <div class="logo">Q</div>
+      <div>
+        <div class="header-title">QC Management</div>
+        <div class="header-sub">플라스틱 필름 품질관리 시스템</div>
+      </div>
+    </div>
+    <div class="tabs" id="tabs"></div>
+  </div>
+</div>
+<div class="content" id="app"></div>
+<div id="modal-root"></div>
+<div id="preview-root"></div>
+
+<script>
+// ─── State ─────────────────────────
+const state = {
+  tab: 0,
+  counts: { defects: 0, tests: 0, certs: 0, requests: 0 },
+  data: { defects: [], tests: [], certs: [], requests: [], issues: [], meetings: [], returns: [] },
+  filters: {
+    defects: { status: '', type: '', search: '' },
+    tests: { status: '', search: '' },
+    certs: { search: '', category: '' },
+    requests: { status: '', type: '', search: '' },
+    issues: { status: '', category: '', search: '' },
+    meetings: { type: '', search: '' },
+    returns: { status: '', search: '' },
+  },
+};
+
+const TABLES = ['defects', 'tests', 'certs', 'requests', 'issues', 'meetings', 'returns'];
+const TAB_INFO = [
+  { label: '대시보드', icon: '📊', key: null },
+  { label: '불량 현황', icon: '🔍', key: 'defects' },
+  { label: '시험 의뢰', icon: '🧪', key: 'tests' },
+  { label: '성적서 특이사항', icon: '📋', key: 'certs' },
+  { label: '영업 요청건', icon: '📨', key: 'requests' },
+  { label: '이슈사항', icon: '⚠️', key: 'issues' },
+  { label: '회의록', icon: '📝', key: 'meetings' },
+  { label: '반품현황', icon: '🔄', key: 'returns' },
+  { label: '불량집계', icon: '📈', key: 'analytics' },
+];
+const STATUS_LIST = ['대기', '진행중', '완료', '보류', '긴급'];
+const DEFECT_TYPES = ['겔','탄화물','처리불량','처짐','권취미터 부족','권취불량','두께불량','주름불량','표면불량','박리','스크래치','슬립불량','블로킹불량','이물','기타'];
+const TEST_TYPES = ['인장강도','열수축률','마찰계수','헤이즈','광택도','수분투과율','산소투과율','열경사','내열성','박리강도','충격강도','기타'];
+const CERT_CATEGORIES = ['규격 변경','측정값 이상','고객 클레임','재시험 필요','장비 이상','기타'];
+const REQUEST_TYPES = ['TDS 요청','PFAS 성적서','CoA 요청','MSDS 요청','샘플 요청','규격확인','인증서류','기타'];
+const DEPARTMENTS = ['영업팀','기술팀','생산팀','구매팀','연구소','경영지원','기타'];
+const ISSUE_CATEGORIES = ['설비 고장','설비 이상','원료 문제','공정 이상','안전 사고','환경 이슈','품질 이슈','인력 문제','공지사항','기타'];
+const MEETING_TYPES = ['정기회의','긴급회의','품질회의','생산회의','안전회의','고객미팅','공정개선','교육/훈련','기타'];
+const RETURN_REASONS = ['품질불량','규격미달','외관불량','포장불량','오배송','납기지연','고객변심','기타'];
+const PRIORITY_LABELS = { high: '긴급', medium: '보통', low: '낮음' };
+const IMAGE_EXTS = ['.jpg','.jpeg','.png','.gif','.bmp','.webp'];
+
+// ─── API ─────────────────────────
+const api = {
+  async getAll(t) { return (await fetch(`/api/${t}`)).json(); },
+  async create(t, d) { return (await fetch(`/api/${t}`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) })).json(); },
+  async update(t, id, d) { return (await fetch(`/api/${t}/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) })).json(); },
+  async remove(t, id) { return (await fetch(`/api/${t}/${id}`, { method:'DELETE' })).json(); },
+  async upload(t, parentId, files) {
+    const fd = new FormData();
+    for (const f of files) fd.append('file', f);
+    return (await fetch(`/api/upload/${t}/${parentId}`, { method:'POST', body: fd })).json();
+  },
+  async getAttachments(t, parentId) { return (await fetch(`/api/attachments/${t}/${parentId}`)).json(); },
+  async deleteAttachment(id) { return (await fetch(`/api/attachment/${id}`, { method:'DELETE' })).json(); },
+};
+
+// ─── Helpers ─────────────────────────
+const uuid = () => crypto.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2);
+const today = () => new Date().toISOString().split('T')[0];
+const nowStr = () => new Date().toISOString().replace('T',' ').slice(0,19);
+const $ = id => document.getElementById(id);
+const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+// 한글 검색 입력 처리 (조합 중 끊김 방지)
+let _searchTimer = null;
+let _isComposing = false;
+function setupSearch(inputEl, filterPath) {
+  if (!inputEl) return;
+  inputEl.addEventListener('compositionstart', () => { _isComposing = true; });
+  inputEl.addEventListener('compositionend', (e) => {
+    _isComposing = false;
+    const keys = filterPath.split('.');
+    let obj = state.filters;
+    for (let i = 0; i < keys.length - 1; i++) obj = obj[keys[i]];
+    obj[keys[keys.length-1]] = e.target.value;
+    renderContent();
+  });
+  inputEl.addEventListener('input', (e) => {
+    if (_isComposing) return;
+    clearTimeout(_searchTimer);
+    _searchTimer = setTimeout(() => {
+      const keys = filterPath.split('.');
+      let obj = state.filters;
+      for (let i = 0; i < keys.length - 1; i++) obj = obj[keys[i]];
+      obj[keys[keys.length-1]] = e.target.value;
+      renderContent();
+    }, 150);
+  });
+}
+function badge(s) { return `<span class="badge badge-${esc(s)}">${esc(s)}</span>`; }
+function priorityHtml(p) { return `<span class="priority priority-${p}"><span class="priority-dot"></span>${PRIORITY_LABELS[p]||p}</span>`; }
+function judgmentBadge(j) { return j ? `<span class="badge badge-${esc(j)}">${esc(j)}</span>` : '-'; }
+function selectOptions(list, sel, empty) {
+  let h = empty ? `<option value="">${empty}</option>` : '';
+  list.forEach(v => { h += `<option${v===sel?' selected':''}>${esc(v)}</option>`; });
+  return h;
+}
+function isOverdue(d,s) { return d && new Date(d)<new Date() && s!=='완료'; }
+function formatSize(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(1) + ' MB';
+}
+function isImage(name) { const ext = '.'+name.split('.').pop().toLowerCase(); return IMAGE_EXTS.includes(ext); }
+function fileIcon(name) {
+  const ext = '.'+name.split('.').pop().toLowerCase();
+  if (IMAGE_EXTS.includes(ext)) return '🖼️';
+  if (['.pdf'].includes(ext)) return '📕';
+  if (['.doc','.docx','.hwp'].includes(ext)) return '📄';
+  if (['.xls','.xlsx','.csv'].includes(ext)) return '📊';
+  if (['.ppt','.pptx'].includes(ext)) return '📑';
+  if (['.zip','.rar','.7z'].includes(ext)) return '📦';
+  return '📎';
+}
+
+// ─── 파일 업로드 컴포넌트 HTML ─────────────────────────
+function uploadZoneHtml(zoneId) {
+  return `
+    <div class="field">
+      <label class="field-label">📎 첨부파일</label>
+      <div class="upload-zone" id="${zoneId}"
+        onclick="document.getElementById('${zoneId}-input').click()"
+        ondragover="event.preventDefault();this.classList.add('dragover')"
+        ondragleave="this.classList.remove('dragover')"
+        ondrop="event.preventDefault();this.classList.remove('dragover');handleFileDrop(event,'${zoneId}')">
+        <div class="upload-zone-icon">📁</div>
+        <div class="upload-zone-text">클릭하여 파일 선택 또는 여기에 드래그</div>
+        <div class="upload-zone-hint">이미지, PDF, 문서, 엑셀 등 (최대 50MB)</div>
+      </div>
+      <input type="file" id="${zoneId}-input" multiple style="display:none"
+        accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.hwp,.zip,.rar,.7z"
+        onchange="handleFileSelect(this.files,'${zoneId}')">
+      <div class="file-list" id="${zoneId}-pending"></div>
+    </div>
+  `;
+}
+
+// 저장 전 대기 파일 목록 (메모리)
+let pendingFiles = [];
+
+function handleFileSelect(files, zoneId) {
+  for (const f of files) pendingFiles.push(f);
+  renderPendingFiles(zoneId);
+}
+function handleFileDrop(event, zoneId) {
+  const files = event.dataTransfer.files;
+  for (const f of files) pendingFiles.push(f);
+  renderPendingFiles(zoneId);
+}
+function removePendingFile(idx, zoneId) {
+  pendingFiles.splice(idx, 1);
+  renderPendingFiles(zoneId);
+}
+function renderPendingFiles(zoneId) {
+  const el = $(zoneId + '-pending');
+  if (!el) return;
+  if (pendingFiles.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = pendingFiles.map((f, i) => `
+    <div class="file-item">
+      <div class="file-thumb">${isImage(f.name) ? '🖼️' : fileIcon(f.name)}</div>
+      <div class="file-info">
+        <div class="file-name">${esc(f.name)}</div>
+        <div class="file-meta">${formatSize(f.size)} · 업로드 대기</div>
+      </div>
+      <div class="file-actions">
+        <button class="btn btn-sm btn-danger" onclick="removePendingFile(${i},'${zoneId}')">삭제</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// 기존 첨부파일 표시 (상세보기용)
+function renderAttachments(attachments, canDelete) {
+  if (!attachments || attachments.length === 0) return '';
+  return `
+    <div class="detail-section">
+      <div class="detail-section-label">📎 첨부파일 (${attachments.length}건)</div>
+      <div class="file-list">
+        ${attachments.map(a => `
+          <div class="file-item">
+            <div class="file-thumb">
+              ${isImage(a.original_name)
+                ? `<img src="/api/file/${a.id}" alt="" onerror="this.parentElement.textContent='🖼️'">`
+                : fileIcon(a.original_name)}
+            </div>
+            <div class="file-info">
+              <div class="file-name">${esc(a.original_name)}</div>
+              <div class="file-meta">${formatSize(a.file_size)} · ${esc(a.uploaded_at)}</div>
+            </div>
+            <div class="file-actions">
+              ${isImage(a.original_name) ? `<button class="btn btn-sm btn-secondary" onclick="previewImage('/api/file/${a.id}','${esc(a.original_name)}')">미리보기</button>` : ''}
+              <a href="/api/download/${a.id}" class="btn btn-sm btn-secondary" style="text-decoration:none">다운로드</a>
+              ${canDelete ? `<button class="btn btn-sm btn-danger" onclick="deleteAttachment('${a.id}')">삭제</button>` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// 이미지 미리보기
+function previewImage(url, name) {
+  $('preview-root').innerHTML = `
+    <div class="preview-overlay" onclick="closePreview()">
+      <img src="${url}" alt="${esc(name)}" onclick="event.stopPropagation()">
+    </div>
+  `;
+}
+function closePreview() { $('preview-root').innerHTML = ''; }
+
+// 첨부파일 삭제
+async function deleteAttachment(fileId) {
+  if (!confirm('첨부파일을 삭제하시겠습니까?')) return;
+  await api.deleteAttachment(fileId);
+  // 현재 열린 상세 모달 새로고침은 수동으로
+  await refresh();
+}
+
+// 첨부파일 수 표시
+function attachCountHtml(count) {
+  if (!count) return '';
+  return `<span class="attach-count">📎${count}</span>`;
+}
+
+// ─── Tabs ─────────────────────────
+function renderTabs() {
+  const el = $('tabs');
+  el.innerHTML = TAB_INFO.map((t, i) => {
+    const active = state.tab === i ? ' active' : '';
+    const k = t.key;
+    const count = k ? state.counts[k] || 0 : 0;
+    const ch = i > 0 && count > 0 ? `<span class="tab-count">${count}</span>` : '';
+    return `<button class="tab-btn${active}" onclick="switchTab(${i})"><span style="font-size:15px">${t.icon}</span>${t.label}${ch}</button>`;
+  }).join('');
+}
+function switchTab(i) { state.tab = i; renderTabs(); renderContent(); }
+
+async function loadAll() {
+  const r = await Promise.all(TABLES.map(t => api.getAll(t)));
+  TABLES.forEach((t, i) => { state.data[t] = r[i]; state.counts[t] = r[i].length; });
+}
+
+function renderContent() {
+  const el = $('app');
+  // 현재 포커스된 검색창의 커서 위치 저장
+  const activeEl = document.activeElement;
+  const activeId = activeEl?.id;
+  const cursorPos = activeEl?.selectionStart;
+
+  switch(state.tab) {
+    case 0: el.innerHTML = renderDashboard(); break;
+    case 1: el.innerHTML = renderDefects(); break;
+    case 2: el.innerHTML = renderTests(); break;
+    case 3: el.innerHTML = renderCerts(); break;
+    case 4: el.innerHTML = renderRequests(); break;
+    case 5: el.innerHTML = renderIssues(); break;
+    case 6: el.innerHTML = renderMeetings(); break;
+    case 7: el.innerHTML = renderReturns(); break;
+    case 8: el.innerHTML = renderAnalytics(); initAnalytics(); break;
+  }
+
+  // 검색 이벤트 바인딩
+  setupSearch($('search-defects'), 'defects.search');
+  setupSearch($('search-tests'), 'tests.search');
+  setupSearch($('search-certs'), 'certs.search');
+  setupSearch($('search-requests'), 'requests.search');
+  setupSearch($('search-issues'), 'issues.search');
+  setupSearch($('search-meetings'), 'meetings.search');
+  setupSearch($('search-returns'), 'returns.search');
+
+  // 포커스 및 커서 위치 복원
+  if (activeId) {
+    const restored = $(activeId);
+    if (restored) {
+      restored.focus();
+      if (cursorPos !== undefined && restored.setSelectionRange) {
+        restored.setSelectionRange(cursorPos, cursorPos);
+      }
+    }
+  }
+}
+
+// ─── Dashboard ─────────────────────────
+function renderDashboard() {
+  const cards = [
+    { idx:1, title:'불량 현황', icon:'🔍', desc:'불량 이력 추적 및 현황 관리', count:state.counts.defects, color:'#EF4444', bg:'#FEF2F2' },
+    { idx:2, title:'시험 의뢰', icon:'🧪', desc:'테스트 의뢰 및 결과 관리', count:state.counts.tests, color:'#3B82F6', bg:'#EFF6FF' },
+    { idx:3, title:'성적서 특이사항', icon:'📋', desc:'시험성적서 이상사항 기록', count:state.counts.certs, color:'#8B5CF6', bg:'#F5F3FF' },
+    { idx:4, title:'영업 요청건', icon:'📨', desc:'TDS, PFAS 등 타부서 요청', count:state.counts.requests, color:'#F59E0B', bg:'#FFFBEB' },
+    { idx:5, title:'이슈사항', icon:'⚠️', desc:'설비·원료·공정 이슈 및 공지', count:state.counts.issues, color:'#DC2626', bg:'#FEF2F2' },
+    { idx:6, title:'회의록', icon:'📝', desc:'회의 기록 및 결정사항 관리', count:state.counts.meetings, color:'#0891B2', bg:'#ECFEFF' },
+    { idx:7, title:'반품현황', icon:'🔄', desc:'고객 반품 접수 및 처리 관리', count:state.counts.returns, color:'#9333EA', bg:'#FAF5FF' },
+    { idx:8, title:'불량집계', icon:'📈', desc:'엑셀 업로드 → 자동 분석/차트', count:0, color:'#0D9488', bg:'#F0FDFA' },
+  ];
+  return `
+    <div class="dash-grid">${cards.map(c => `
+      <div class="dash-card" onclick="switchTab(${c.idx})">
+        <div class="bg-circle" style="background:${c.bg}"></div>
+        <div class="dash-card-icon">${c.icon}</div>
+        <div class="dash-card-title">${c.title}</div>
+        <div class="dash-card-desc">${c.desc}</div>
+        <span class="dash-card-count" style="color:${c.color}">${c.count}</span>
+        <span class="dash-card-unit">건 등록</span>
+      </div>`).join('')}
+    </div>
+    <div class="summary-box">
+      <div class="summary-title">품질관리 업무 현황 요약</div>
+      <div class="summary-text">
+        각 메뉴에서 데이터를 등록하면 대시보드에 총 건수가 자동 반영됩니다.<br>
+        등록된 데이터는 SQLite DB에 영구 저장되며, 첨부파일은 uploads 폴더에 보관됩니다.<br>
+        불량 사진, 성적서 원본, 요청 관련 문서 등을 첨부하여 추적성을 확보할 수 있습니다.
+      </div>
+    </div>`;
+}
+
+// ─── Defects ─────────────────────────
+function renderDefects() {
+  const f = state.filters.defects;
+  const items = state.data.defects.filter(i => {
+    if (f.status && i.status !== f.status) return false;
+    if (f.type && i.defect_type !== f.type) return false;
+    if (f.search) { const s=f.search.toLowerCase(); return [i.product,i.lot_no,i.line,i.worker,i.responsible].some(v=>(v||'').toLowerCase().includes(s)); }
+    return true;
+  });
+  const all = state.data.defects;
+  const stats = [
+    {label:'전체 불량',val:all.length,color:'#1E293B',icon:'📋'},
+    {label:'대기',val:all.filter(i=>i.status==='대기').length,color:'#F59E0B',icon:'⏳'},
+    {label:'진행중',val:all.filter(i=>i.status==='진행중').length,color:'#3B82F6',icon:'🔧'},
+    {label:'완료',val:all.filter(i=>i.status==='완료').length,color:'#10B981',icon:'✅'},
+    {label:'긴급',val:all.filter(i=>i.priority==='high').length,color:'#EF4444',icon:'🚨'},
+  ];
+  return `
+    <div class="stats-grid">${stats.map(s=>`<div class="stat-card"><span class="stat-icon">${s.icon}</span><div><div class="stat-label">${s.label}</div><div class="stat-value" style="color:${s.color}">${s.val}</div></div></div>`).join('')}</div>
+    <div class="filters">
+      <input class="input-sm" id="search-defects" placeholder="검색 (제품, LOT, 라인, 작업자)" value="${esc(f.search)}">
+      <select class="select-sm" onchange="state.filters.defects.status=this.value;renderContent()">${selectOptions(STATUS_LIST,f.status,'전체 상태')}</select>
+      <select class="select-sm" onchange="state.filters.defects.type=this.value;renderContent()">${selectOptions(DEFECT_TYPES,f.type,'전체 유형')}</select>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" onclick="openDefectModal()">+ 불량 등록</button>
+    </div>
+    <div class="table-wrap"><table><thead><tr>
+      <th>생산일자</th><th>발생일자</th><th>제품명</th><th>규격</th><th>LOT No.</th><th>라인</th><th>작업자</th><th>불량유형</th><th>수량</th><th>상태</th><th>첨부</th><th></th>
+    </tr></thead><tbody>
+      ${items.length===0?'<tr><td colspan="12" class="empty-row">등록된 불량 내역이 없습니다</td></tr>':''}
+      ${items.map(item=>`<tr onclick="openDefectDetail('${item.id}')" style="cursor:pointer">
+        <td class="td-nowrap">${esc(item.production_date)}</td><td class="td-nowrap">${esc(item.date)}</td>
+        <td class="td-bold">${esc(item.product)}</td><td class="td-dim">${esc(item.spec)}</td>
+        <td class="td-mono">${esc(item.lot_no)}</td><td>${esc(item.line)}</td><td>${esc(item.worker)}</td>
+        <td>${esc(item.defect_type)}</td><td class="td-right">${esc(item.quantity)}</td>
+        <td>${badge(item.status)}</td><td>${attachCountHtml(item.attachment_count)}</td>
+        <td onclick="event.stopPropagation()">
+          <button class="btn-icon" onclick="openDefectModal('${item.id}')">✏️</button>
+          <button class="btn-icon" onclick="deleteItem('defects','${item.id}')">🗑️</button>
+        </td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+// ─── Tests ─────────────────────────
+function renderTests() {
+  const f = state.filters.tests;
+  const items = state.data.tests.filter(i => {
+    if (f.status && i.status !== f.status) return false;
+    if (f.search) { const s=f.search.toLowerCase(); return [i.product,i.lot_no,i.requester,i.test_type].some(v=>(v||'').toLowerCase().includes(s)); }
+    return true;
+  });
+  return `
+    <div class="filters">
+      <input class="input-md" id="search-tests" placeholder="검색 (제품, LOT, 의뢰자, 시험유형)" value="${esc(f.search)}">
+      <select class="select-sm" onchange="state.filters.tests.status=this.value;renderContent()">${selectOptions(STATUS_LIST,f.status,'전체 상태')}</select>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" onclick="openTestModal()">+ 시험 의뢰</button>
+    </div>
+    <div class="table-wrap"><table><thead><tr>
+      <th>의뢰일</th><th>의뢰자</th><th>제품명</th><th>LOT No.</th><th>시험유형</th><th>시험조건</th><th>기한</th><th>상태</th><th>우선순위</th><th>판정</th><th>첨부</th><th></th>
+    </tr></thead><tbody>
+      ${items.length===0?'<tr><td colspan="12" class="empty-row">등록된 시험 의뢰가 없습니다</td></tr>':''}
+      ${items.map(item=>`<tr onclick="openTestDetail('${item.id}')" style="cursor:pointer">
+        <td class="td-nowrap">${esc(item.request_date)}</td><td>${esc(item.requester)}</td>
+        <td class="td-bold">${esc(item.product)}</td><td class="td-mono">${esc(item.lot_no)}</td>
+        <td>${esc(item.test_type)}</td><td class="td-dim">${esc(item.test_condition)||'-'}</td>
+        <td class="td-nowrap">${esc(item.due_date)||'-'}</td><td>${badge(item.status)}</td>
+        <td>${priorityHtml(item.priority)}</td><td>${judgmentBadge(item.judgment)}</td>
+        <td>${attachCountHtml(item.attachment_count)}</td>
+        <td onclick="event.stopPropagation()">
+          <button class="btn-icon" onclick="openTestModal('${item.id}')">✏️</button>
+          <button class="btn-icon" onclick="deleteItem('tests','${item.id}')">🗑️</button>
+        </td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+// ─── Certs ─────────────────────────
+function renderCerts() {
+  const f = state.filters.certs;
+  const items = state.data.certs.filter(i => {
+    if (f.category && i.category !== f.category) return false;
+    if (f.search) { const s=f.search.toLowerCase(); return [i.product,i.lot_no,i.cert_no,i.customer,i.issue].some(v=>(v||'').toLowerCase().includes(s)); }
+    return true;
+  });
+  return `
+    <div class="filters">
+      <input class="input-md" id="search-certs" placeholder="검색 (제품, LOT, 성적서번호, 고객사)" value="${esc(f.search)}">
+      <select class="select-md" onchange="state.filters.certs.category=this.value;renderContent()">${selectOptions(CERT_CATEGORIES,f.category,'전체 분류')}</select>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" onclick="openCertModal()">+ 특이사항 등록</button>
+    </div>
+    <div class="card-list">
+      ${items.length===0?'<div class="card-item empty-row">등록된 특이사항이 없습니다</div>':''}
+      ${items.map(item=>`<div class="card-item">
+        <div class="card-header">
+          <div class="card-tags">
+            <span class="badge-category">${esc(item.category)}</span>${badge(item.status)}
+            <span style="font-size:12px;color:#94A3B8">${esc(item.date)}</span>
+            ${attachCountHtml(item.attachment_count)}
+          </div>
+          <div>
+            <button class="btn-icon" onclick="openCertDetail('${item.id}')">👁️</button>
+            <button class="btn-icon" onclick="openCertModal('${item.id}')">✏️</button>
+            <button class="btn-icon" onclick="deleteItem('certs','${item.id}')">🗑️</button>
+          </div>
+        </div>
+        <div class="card-meta">
+          ${item.cert_no?`<span>성적서: <strong>${esc(item.cert_no)}</strong></span>`:''}
+          <span>제품: <strong>${esc(item.product)}</strong></span>
+          ${item.lot_no?`<span>LOT: <strong>${esc(item.lot_no)}</strong></span>`:''}
+          ${item.customer?`<span>고객: <strong>${esc(item.customer)}</strong></span>`:''}
+        </div>
+        <div class="card-content">${esc(item.issue)}</div>
+        ${item.action?`<div class="card-action"><strong>조치:</strong> ${esc(item.action)}</div>`:''}
+      </div>`).join('')}
+    </div>`;
+}
+
+// ─── Requests ─────────────────────────
+function renderRequests() {
+  const f = state.filters.requests;
+  const items = state.data.requests.filter(i => {
+    if (f.status && i.status !== f.status) return false;
+    if (f.type && i.request_type !== f.type) return false;
+    if (f.search) { const s=f.search.toLowerCase(); return [i.product,i.requester,i.customer,i.detail,i.department].some(v=>(v||'').toLowerCase().includes(s)); }
+    return true;
+  });
+  const pc = state.data.requests.filter(i=>i.status!=='완료').length;
+  return `
+    ${pc>0?`<div class="alert-banner"><span style="font-size:18px">📌</span> 미완료 요청건이 <strong>${pc}건</strong> 있습니다.</div>`:''}
+    <div class="filters">
+      <input class="input-sm" id="search-requests" placeholder="검색 (제품, 요청자, 고객, 부서)" value="${esc(f.search)}">
+      <select class="select-sm" onchange="state.filters.requests.status=this.value;renderContent()">${selectOptions(STATUS_LIST,f.status,'전체 상태')}</select>
+      <select class="select-md" onchange="state.filters.requests.type=this.value;renderContent()">${selectOptions(REQUEST_TYPES,f.type,'전체 유형')}</select>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" onclick="openRequestModal()">+ 요청건 등록</button>
+    </div>
+    <div class="table-wrap"><table><thead><tr>
+      <th>요청일</th><th>요청부서</th><th>요청자</th><th>유형</th><th>제품/고객</th><th>기한</th><th>상태</th><th>우선순위</th><th>담당자</th><th>첨부</th><th></th>
+    </tr></thead><tbody>
+      ${items.length===0?'<tr><td colspan="11" class="empty-row">등록된 요청건이 없습니다</td></tr>':''}
+      ${items.map(item=>{const od=isOverdue(item.due_date,item.status);return `<tr onclick="openRequestDetail('${item.id}')" style="cursor:pointer">
+        <td class="td-nowrap">${esc(item.request_date)}</td><td>${esc(item.department)}</td>
+        <td>${esc(item.requester)}</td><td><span class="badge-type">${esc(item.request_type)}</span></td>
+        <td><div class="td-bold">${esc(item.product)||'-'}</div>${item.customer?`<div class="td-sub">${esc(item.customer)}</div>`:''}</td>
+        <td class="td-nowrap${od?' td-overdue':''}">${esc(item.due_date)||'-'}</td>
+        <td>${badge(item.status)}</td><td>${priorityHtml(item.priority)}</td>
+        <td>${esc(item.responsible)||'-'}</td><td>${attachCountHtml(item.attachment_count)}</td>
+        <td onclick="event.stopPropagation()">
+          <button class="btn-icon" onclick="openRequestModal('${item.id}')">✏️</button>
+          <button class="btn-icon" onclick="deleteItem('requests','${item.id}')">🗑️</button>
+        </td></tr>`}).join('')}
+    </tbody></table></div>`;
+}
+
+// ─── Modal ─────────────────────────
+function showModal(title, body, width) {
+  $('modal-root').innerHTML = `<div class="modal-overlay" onclick="closeModal()">
+    <div class="modal-box" style="width:${Math.min(width||560,window.innerWidth-32)}px" onclick="event.stopPropagation()">
+      <div class="modal-header"><span class="modal-title">${title}</span><button class="modal-close" onclick="closeModal()">✕</button></div>
+      <div class="modal-body">${body}</div>
+    </div></div>`;
+}
+function closeModal() { $('modal-root').innerHTML=''; pendingFiles=[]; }
+function field(l,h,r) { return `<div class="field"><label class="field-label">${l}${r?' <span class="req">*</span>':''}</label>${h}</div>`; }
+
+// ─── Defect Modal ─────────────────────────
+function openDefectModal(editId) {
+  pendingFiles = [];
+  const item = editId ? state.data.defects.find(i=>i.id===editId) : null;
+  const isEdit = !!item;
+  const v = item || {production_date:today(),date:today(),product:'',spec:'',lot_no:'',line:'',worker:'',defect_type:DEFECT_TYPES[0],quantity:'',status:'대기',priority:'medium',cause:'',action:'',responsible:'',due_date:'',notes:''};
+  const body = `
+    <div class="form-grid">
+      ${field('생산일자',`<input type="date" id="f-pdate" class="input-full" value="${v.production_date||''}">`)}
+      ${field('발생일자',`<input type="date" id="f-date" class="input-full" value="${v.date}">`,true)}
+      ${field('제품명',`<input id="f-product" class="input-full" value="${esc(v.product)}" placeholder="예: SY-200">`,true)}
+      ${field('규격',`<input id="f-spec" class="input-full" value="${esc(v.spec)}" placeholder="예: 25μ X 1,000mm X 4,000m">`)}
+      ${field('LOT No.',`<input id="f-lotno" class="input-full" value="${esc(v.lot_no)}" placeholder="예: 2026032501">`)}
+      ${field('생산라인',`<input id="f-line" class="input-full" value="${esc(v.line)}" placeholder="예: 1호기">`)}
+      ${field('작업자',`<input id="f-worker" class="input-full" value="${esc(v.worker)}" placeholder="이름">`)}
+      ${field('불량유형',`<select id="f-dtype" class="input-full">${selectOptions(DEFECT_TYPES,v.defect_type)}</select>`)}
+      ${field('불량수량',`<input type="number" id="f-qty" class="input-full" value="${esc(v.quantity)}">`)}
+      ${field('상태',`<select id="f-status" class="input-full">${selectOptions(STATUS_LIST,v.status)}</select>`)}
+      ${field('우선순위',`<select id="f-priority" class="input-full"><option value="high"${v.priority==='high'?' selected':''}>긴급</option><option value="medium"${v.priority==='medium'?' selected':''}>보통</option><option value="low"${v.priority==='low'?' selected':''}>낮음</option></select>`)}
+      ${field('담당자',`<input id="f-resp" class="input-full" value="${esc(v.responsible)}">`)}
+      ${field('완료기한',`<input type="date" id="f-due" class="input-full" value="${v.due_date||''}">`)}
+    </div>
+    ${field('원인 분석',`<textarea id="f-cause" class="input-full" rows="2">${esc(v.cause)}</textarea>`)}
+    ${field('조치 내용',`<textarea id="f-action" class="input-full" rows="2">${esc(v.action)}</textarea>`)}
+    ${field('비고',`<textarea id="f-notes" class="input-full" rows="2">${esc(v.notes)}</textarea>`)}
+    ${uploadZoneHtml('defect-upload')}
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveDefect('${editId||''}')">${isEdit?'수정':'등록'}</button>
+    </div>`;
+  showModal(isEdit?'불량 수정':'불량 등록', body, 640);
+}
+async function saveDefect(editId) {
+  const data = {production_date:$('f-pdate').value,date:$('f-date').value,product:$('f-product').value,spec:$('f-spec').value,lot_no:$('f-lotno').value,line:$('f-line').value,worker:$('f-worker').value,defect_type:$('f-dtype').value,quantity:$('f-qty').value,status:$('f-status').value,priority:$('f-priority').value,cause:$('f-cause').value,action:$('f-action').value,responsible:$('f-resp').value,due_date:$('f-due').value,notes:$('f-notes').value};
+  if(!data.date||!data.product) return alert('필수 항목을 입력해주세요.');
+  let itemId = editId;
+  if(editId) {
+    const ex=state.data.defects.find(i=>i.id===editId); let h=[]; try{h=JSON.parse(ex.history||'[]')}catch(e){} h.push({action:'수정',date:nowStr()}); data.history=h;
+    await api.update('defects',editId,data);
+  } else { itemId=uuid(); data.id=itemId; data.history=[{action:'등록',date:nowStr()}]; await api.create('defects',data); }
+  if(pendingFiles.length>0) await api.upload('defects',itemId,pendingFiles);
+  closeModal(); await refresh();
+}
+async function openDefectDetail(id) {
+  const item=state.data.defects.find(i=>i.id===id); if(!item) return;
+  let history=[]; try{history=JSON.parse(item.history||'[]')}catch(e){}
+  const attachments = await api.getAttachments('defects', id);
+  const body = `
+    <div class="detail-grid">
+      ${[['생산일자',item.production_date||'-'],['발생일자',item.date],['제품명',item.product],['규격',item.spec||'-'],['LOT No.',item.lot_no||'-'],['생산라인',item.line||'-'],['작업자',item.worker||'-'],['불량유형',item.defect_type],['수량',item.quantity||'-'],['담당자',item.responsible||'-'],['완료기한',item.due_date||'-']].map(([l,v])=>`<div><div class="detail-label">${l}</div><div class="detail-value">${esc(v)||'-'}</div></div>`).join('')}
+      <div><div class="detail-label">상태</div>${badge(item.status)}</div>
+    </div>
+    ${item.cause?`<div class="detail-section"><div class="detail-section-label">원인 분석</div><div class="detail-box">${esc(item.cause)}</div></div>`:''}
+    ${item.action?`<div class="detail-section"><div class="detail-section-label">조치 내용</div><div class="detail-box">${esc(item.action)}</div></div>`:''}
+    ${item.notes?`<div class="detail-section"><div class="detail-section-label">비고</div><div class="detail-box">${esc(item.notes)}</div></div>`:''}
+    ${renderAttachments(attachments, true)}
+    ${history.length>0?`<div class="detail-section"><div class="detail-section-label">이력 추적</div><div class="timeline">${history.map(h=>`<div class="timeline-item"><span class="timeline-dot"></span><span class="timeline-date">${esc(h.date)}</span><span class="timeline-action">${esc(h.action)}</span></div>`).join('')}</div></div>`:''}`;
+  showModal('불량 상세 이력', body, 660);
+}
+
+// ─── Test Modal ─────────────────────────
+function openTestModal(editId) {
+  pendingFiles = [];
+  const item = editId ? state.data.tests.find(i=>i.id===editId) : null;
+  const isEdit = !!item;
+  const v = item || {request_date:today(),requester:'',product:'',lot_no:'',test_type:TEST_TYPES[0],sample_info:'',test_condition:'',standard:'',status:'대기',priority:'medium',due_date:'',result:'',judgment:'',tester:'',completed_date:'',notes:''};
+  const body = `
+    <div class="form-grid">
+      ${field('의뢰일',`<input type="date" id="f-rdate" class="input-full" value="${v.request_date}">`,true)}
+      ${field('의뢰자',`<input id="f-requester" class="input-full" value="${esc(v.requester)}">`,true)}
+      ${field('제품명',`<input id="f-product" class="input-full" value="${esc(v.product)}">`,true)}
+      ${field('LOT No.',`<input id="f-lotno" class="input-full" value="${esc(v.lot_no)}">`)}
+      ${field('시험유형',`<select id="f-ttype" class="input-full">${selectOptions(TEST_TYPES,v.test_type)}</select>`,true)}
+      ${field('우선순위',`<select id="f-priority" class="input-full"><option value="high"${v.priority==='high'?' selected':''}>긴급</option><option value="medium"${v.priority==='medium'?' selected':''}>보통</option><option value="low"${v.priority==='low'?' selected':''}>낮음</option></select>`)}
+      ${field('완료기한',`<input type="date" id="f-due" class="input-full" value="${v.due_date||''}">`)}
+      ${field('상태',`<select id="f-status" class="input-full">${selectOptions(STATUS_LIST,v.status)}</select>`)}
+    </div>
+    ${field('시료 정보',`<textarea id="f-sample" class="input-full" rows="2">${esc(v.sample_info)}</textarea>`)}
+    ${field('시험 조건',`<textarea id="f-cond" class="input-full" rows="2">${esc(v.test_condition)}</textarea>`)}
+    ${field('적용 규격/기준',`<input id="f-std" class="input-full" value="${esc(v.standard)}">`)}
+    <div class="form-grid">
+      ${field('시험자',`<input id="f-tester" class="input-full" value="${esc(v.tester)}">`)}
+      ${field('완료일',`<input type="date" id="f-cdate" class="input-full" value="${v.completed_date||''}">`)}
+    </div>
+    ${field('시험 결과',`<textarea id="f-result" class="input-full" rows="2">${esc(v.result)}</textarea>`)}
+    ${field('판정',`<select id="f-judgment" class="input-full"><option value="">미판정</option><option value="합격"${v.judgment==='합격'?' selected':''}>합격</option><option value="불합격"${v.judgment==='불합격'?' selected':''}>불합격</option><option value="조건부합격"${v.judgment==='조건부합격'?' selected':''}>조건부합격</option></select>`)}
+    ${field('비고',`<textarea id="f-notes" class="input-full" rows="2">${esc(v.notes)}</textarea>`)}
+    ${uploadZoneHtml('test-upload')}
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveTest('${editId||''}')">${isEdit?'수정':'등록'}</button>
+    </div>`;
+  showModal(isEdit?'시험 의뢰 수정':'시험 의뢰 등록', body, 620);
+}
+async function saveTest(editId) {
+  const data = {request_date:$('f-rdate').value,requester:$('f-requester').value,product:$('f-product').value,lot_no:$('f-lotno').value,test_type:$('f-ttype').value,sample_info:$('f-sample').value,test_condition:$('f-cond').value,standard:$('f-std').value,status:$('f-status').value,priority:$('f-priority').value,due_date:$('f-due').value,result:$('f-result').value,judgment:$('f-judgment').value,tester:$('f-tester').value,completed_date:$('f-cdate').value,notes:$('f-notes').value};
+  if(!data.product||!data.test_type||!data.requester) return alert('필수 항목을 입력해주세요.');
+  let itemId=editId;
+  if(editId) { await api.update('tests',editId,data); } else { itemId=uuid(); data.id=itemId; await api.create('tests',data); }
+  if(pendingFiles.length>0) await api.upload('tests',itemId,pendingFiles);
+  closeModal(); await refresh();
+}
+async function openTestDetail(id) {
+  const item=state.data.tests.find(i=>i.id===id); if(!item) return;
+  const attachments = await api.getAttachments('tests', id);
+  const body = `
+    <div class="detail-grid">
+      ${[['의뢰일',item.request_date],['의뢰자',item.requester],['제품명',item.product],['LOT No.',item.lot_no],['시험유형',item.test_type],['적용규격',item.standard||'-'],['시험자',item.tester||'-'],['완료일',item.completed_date||'-']].map(([l,v])=>`<div><div class="detail-label">${l}</div><div class="detail-value">${esc(v)||'-'}</div></div>`).join('')}
+      <div><div class="detail-label">상태</div>${badge(item.status)}</div>
+      <div><div class="detail-label">판정</div>${judgmentBadge(item.judgment)}</div>
+    </div>
+    ${item.sample_info?`<div class="detail-section"><div class="detail-section-label">시료 정보</div><div class="detail-box">${esc(item.sample_info)}</div></div>`:''}
+    ${item.test_condition?`<div class="detail-section"><div class="detail-section-label">시험 조건</div><div class="detail-box">${esc(item.test_condition)}</div></div>`:''}
+    ${item.result?`<div class="detail-section"><div class="detail-section-label">시험 결과</div><div class="detail-box">${esc(item.result)}</div></div>`:''}
+    ${item.notes?`<div class="detail-section"><div class="detail-section-label">비고</div><div class="detail-box">${esc(item.notes)}</div></div>`:''}
+    ${renderAttachments(attachments, true)}`;
+  showModal('시험 의뢰 상세', body, 660);
+}
+
+// ─── Cert Modal ─────────────────────────
+function openCertModal(editId) {
+  pendingFiles = [];
+  const item = editId ? state.data.certs.find(i=>i.id===editId) : null;
+  const isEdit = !!item;
+  const v = item || {date:today(),cert_no:'',product:'',lot_no:'',customer:'',category:CERT_CATEGORIES[0],issue:'',impact:'',action:'',status:'대기',responsible:'',notes:''};
+  const body = `
+    <div class="form-grid">
+      ${field('발생일자',`<input type="date" id="f-date" class="input-full" value="${v.date}">`)}
+      ${field('성적서 번호',`<input id="f-certno" class="input-full" value="${esc(v.cert_no)}">`)}
+      ${field('제품명',`<input id="f-product" class="input-full" value="${esc(v.product)}">`,true)}
+      ${field('LOT No.',`<input id="f-lotno" class="input-full" value="${esc(v.lot_no)}">`)}
+      ${field('고객사',`<input id="f-customer" class="input-full" value="${esc(v.customer)}">`)}
+      ${field('분류',`<select id="f-cat" class="input-full">${selectOptions(CERT_CATEGORIES,v.category)}</select>`)}
+      ${field('상태',`<select id="f-status" class="input-full">${selectOptions(STATUS_LIST,v.status)}</select>`)}
+      ${field('담당자',`<input id="f-resp" class="input-full" value="${esc(v.responsible)}">`)}
+    </div>
+    ${field('특이사항 내용',`<textarea id="f-issue" class="input-full" rows="3">${esc(v.issue)}</textarea>`,true)}
+    ${field('영향 범위',`<textarea id="f-impact" class="input-full" rows="2">${esc(v.impact)}</textarea>`)}
+    ${field('조치 내용',`<textarea id="f-action" class="input-full" rows="2">${esc(v.action)}</textarea>`)}
+    ${field('비고',`<textarea id="f-notes" class="input-full" rows="2">${esc(v.notes)}</textarea>`)}
+    ${uploadZoneHtml('cert-upload')}
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveCert('${editId||''}')">${isEdit?'수정':'등록'}</button>
+    </div>`;
+  showModal(isEdit?'특이사항 수정':'특이사항 등록', body, 580);
+}
+async function saveCert(editId) {
+  const data = {date:$('f-date').value,cert_no:$('f-certno').value,product:$('f-product').value,lot_no:$('f-lotno').value,customer:$('f-customer').value,category:$('f-cat').value,issue:$('f-issue').value,impact:$('f-impact').value,action:$('f-action').value,status:$('f-status').value,responsible:$('f-resp').value,notes:$('f-notes').value};
+  if(!data.product||!data.issue) return alert('필수 항목을 입력해주세요.');
+  let itemId=editId;
+  if(editId) { await api.update('certs',editId,data); } else { itemId=uuid(); data.id=itemId; await api.create('certs',data); }
+  if(pendingFiles.length>0) await api.upload('certs',itemId,pendingFiles);
+  closeModal(); await refresh();
+}
+async function openCertDetail(id) {
+  const item=state.data.certs.find(i=>i.id===id); if(!item) return;
+  const attachments = await api.getAttachments('certs', id);
+  const body = `
+    <div class="detail-grid">
+      ${[['발생일자',item.date],['성적서번호',item.cert_no||'-'],['제품명',item.product],['LOT No.',item.lot_no||'-'],['고객사',item.customer||'-'],['분류',item.category],['담당자',item.responsible||'-']].map(([l,v])=>`<div><div class="detail-label">${l}</div><div class="detail-value">${esc(v)||'-'}</div></div>`).join('')}
+      <div><div class="detail-label">상태</div>${badge(item.status)}</div>
+    </div>
+    ${item.issue?`<div class="detail-section"><div class="detail-section-label">특이사항 내용</div><div class="detail-box">${esc(item.issue)}</div></div>`:''}
+    ${item.impact?`<div class="detail-section"><div class="detail-section-label">영향 범위</div><div class="detail-box">${esc(item.impact)}</div></div>`:''}
+    ${item.action?`<div class="detail-section"><div class="detail-section-label">조치 내용</div><div class="detail-box">${esc(item.action)}</div></div>`:''}
+    ${renderAttachments(attachments, true)}`;
+  showModal('성적서 특이사항 상세', body, 660);
+}
+
+// ─── Request Modal ─────────────────────────
+function openRequestModal(editId) {
+  pendingFiles = [];
+  const item = editId ? state.data.requests.find(i=>i.id===editId) : null;
+  const isEdit = !!item;
+  const v = item || {request_date:today(),request_type:REQUEST_TYPES[0],department:DEPARTMENTS[0],requester:'',product:'',customer:'',detail:'',status:'대기',priority:'medium',due_date:'',completed_date:'',response:'',responsible:'',notes:''};
+  const body = `
+    <div class="form-grid">
+      ${field('요청일',`<input type="date" id="f-rdate" class="input-full" value="${v.request_date}">`)}
+      ${field('요청부서',`<select id="f-dept" class="input-full">${selectOptions(DEPARTMENTS,v.department)}</select>`)}
+      ${field('요청자',`<input id="f-requester" class="input-full" value="${esc(v.requester)}">`,true)}
+      ${field('요청유형',`<select id="f-rtype" class="input-full">${selectOptions(REQUEST_TYPES,v.request_type)}</select>`,true)}
+      ${field('관련 제품',`<input id="f-product" class="input-full" value="${esc(v.product)}">`)}
+      ${field('고객사',`<input id="f-customer" class="input-full" value="${esc(v.customer)}">`)}
+      ${field('우선순위',`<select id="f-priority" class="input-full"><option value="high"${v.priority==='high'?' selected':''}>긴급</option><option value="medium"${v.priority==='medium'?' selected':''}>보통</option><option value="low"${v.priority==='low'?' selected':''}>낮음</option></select>`)}
+      ${field('상태',`<select id="f-status" class="input-full">${selectOptions(STATUS_LIST,v.status)}</select>`)}
+      ${field('완료기한',`<input type="date" id="f-due" class="input-full" value="${v.due_date||''}">`)}
+      ${field('완료일',`<input type="date" id="f-cdate" class="input-full" value="${v.completed_date||''}">`)}
+    </div>
+    ${field('요청 상세 내용',`<textarea id="f-detail" class="input-full" rows="3">${esc(v.detail)}</textarea>`,true)}
+    ${field('담당자',`<input id="f-resp" class="input-full" value="${esc(v.responsible)}">`)}
+    ${field('회신 내용',`<textarea id="f-response" class="input-full" rows="2">${esc(v.response)}</textarea>`)}
+    ${field('비고',`<textarea id="f-notes" class="input-full" rows="2">${esc(v.notes)}</textarea>`)}
+    ${uploadZoneHtml('req-upload')}
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveRequest('${editId||''}')">${isEdit?'수정':'등록'}</button>
+    </div>`;
+  showModal(isEdit?'요청건 수정':'요청건 등록', body, 600);
+}
+async function saveRequest(editId) {
+  const data = {request_date:$('f-rdate').value,request_type:$('f-rtype').value,department:$('f-dept').value,requester:$('f-requester').value,product:$('f-product').value,customer:$('f-customer').value,detail:$('f-detail').value,status:$('f-status').value,priority:$('f-priority').value,due_date:$('f-due').value,completed_date:$('f-cdate').value,response:$('f-response').value,responsible:$('f-resp').value,notes:$('f-notes').value};
+  if(!data.request_type||!data.requester||!data.detail) return alert('필수 항목을 입력해주세요.');
+  let itemId=editId;
+  if(editId) { await api.update('requests',editId,data); } else { itemId=uuid(); data.id=itemId; await api.create('requests',data); }
+  if(pendingFiles.length>0) await api.upload('requests',itemId,pendingFiles);
+  closeModal(); await refresh();
+}
+async function openRequestDetail(id) {
+  const item=state.data.requests.find(i=>i.id===id); if(!item) return;
+  const attachments = await api.getAttachments('requests', id);
+  const body = `
+    <div class="detail-grid">
+      ${[['요청일',item.request_date],['요청부서',item.department],['요청자',item.requester],['요청유형',item.request_type],['관련제품',item.product||'-'],['고객사',item.customer||'-'],['완료기한',item.due_date||'-'],['완료일',item.completed_date||'-'],['담당자',item.responsible||'-']].map(([l,v])=>`<div><div class="detail-label">${l}</div><div class="detail-value">${esc(v)||'-'}</div></div>`).join('')}
+      <div><div class="detail-label">상태</div>${badge(item.status)}</div>
+    </div>
+    ${item.detail?`<div class="detail-section"><div class="detail-section-label">요청 상세</div><div class="detail-box">${esc(item.detail)}</div></div>`:''}
+    ${item.response?`<div class="detail-section"><div class="detail-section-label">회신 내용</div><div class="detail-box">${esc(item.response)}</div></div>`:''}
+    ${renderAttachments(attachments, true)}`;
+  showModal('영업 요청건 상세', body, 660);
+}
+
+// ─── Issues (이슈사항) ─────────────────────────
+function renderIssues() {
+  const f = state.filters.issues;
+  const items = (state.data.issues||[]).filter(i => {
+    if (f.status && i.status !== f.status) return false;
+    if (f.category && i.category !== f.category) return false;
+    if (f.search) { const s=f.search.toLowerCase(); return [i.title,i.target_line,i.target_product,i.reporter,i.responsible,i.detail].some(v=>(v||'').toLowerCase().includes(s)); }
+    return true;
+  });
+  const all = state.data.issues||[];
+  const stats = [
+    {label:'전체 이슈',val:all.length,color:'#1E293B',icon:'📋'},
+    {label:'대기',val:all.filter(i=>i.status==='대기').length,color:'#F59E0B',icon:'⏳'},
+    {label:'진행중',val:all.filter(i=>i.status==='진행중').length,color:'#3B82F6',icon:'🔧'},
+    {label:'완료',val:all.filter(i=>i.status==='완료').length,color:'#10B981',icon:'✅'},
+    {label:'긴급',val:all.filter(i=>i.priority==='high').length,color:'#EF4444',icon:'🚨'},
+  ];
+  return `
+    <div class="stats-grid">${stats.map(s=>`<div class="stat-card"><span class="stat-icon">${s.icon}</span><div><div class="stat-label">${s.label}</div><div class="stat-value" style="color:${s.color}">${s.val}</div></div></div>`).join('')}</div>
+    <div class="filters">
+      <input class="input-md" id="search-issues" placeholder="검색 (제목, 라인, 제품, 보고자)" value="${esc(f.search)}">
+      <select class="select-sm" onchange="state.filters.issues.status=this.value;renderContent()">${selectOptions(STATUS_LIST,f.status,'전체 상태')}</select>
+      <select class="select-md" onchange="state.filters.issues.category=this.value;renderContent()">${selectOptions(ISSUE_CATEGORIES,f.category,'전체 분류')}</select>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" onclick="openIssueModal()">+ 이슈 등록</button>
+    </div>
+    <div class="card-list">
+      ${items.length===0?'<div class="card-item empty-row">등록된 이슈사항이 없습니다</div>':''}
+      ${items.map(item=>{
+        const catColors = {'설비 고장':'#DC2626','설비 이상':'#EA580C','원료 문제':'#D97706','공정 이상':'#CA8A04','안전 사고':'#DC2626','환경 이슈':'#16A34A','품질 이슈':'#2563EB','인력 문제':'#7C3AED','공지사항':'#0891B2','기타':'#64748B'};
+        const catColor = catColors[item.category]||'#64748B';
+        return `<div class="card-item" style="border-left:3px solid ${catColor}">
+        <div class="card-header">
+          <div class="card-tags">
+            <span style="padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;background:${catColor}15;color:${catColor}">${esc(item.category)}</span>
+            ${badge(item.status)}
+            ${priorityHtml(item.priority)}
+            <span style="font-size:12px;color:#94A3B8">${esc(item.date)}</span>
+            ${attachCountHtml(item.attachment_count)}
+          </div>
+          <div>
+            <button class="btn-icon" onclick="openIssueDetail('${item.id}')">👁️</button>
+            <button class="btn-icon" onclick="openIssueModal('${item.id}')">✏️</button>
+            <button class="btn-icon" onclick="deleteItem('issues','${item.id}')">🗑️</button>
+          </div>
+        </div>
+        <div style="font-size:15px;font-weight:700;color:#1E293B;margin-bottom:6px">${esc(item.title)}</div>
+        <div class="card-meta">
+          ${item.target_line?`<span>대상 라인: <strong>${esc(item.target_line)}</strong></span>`:''}
+          ${item.target_product?`<span>관련 제품: <strong>${esc(item.target_product)}</strong></span>`:''}
+          ${item.reporter?`<span>보고자: <strong>${esc(item.reporter)}</strong></span>`:''}
+          ${item.responsible?`<span>담당자: <strong>${esc(item.responsible)}</strong></span>`:''}
+        </div>
+        <div class="card-content" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(item.detail)}</div>
+        ${item.action_taken?`<div class="card-action"><strong>조치 완료:</strong> ${esc(item.action_taken)}</div>`:''}
+        ${item.action_plan&&!item.action_taken?`<div style="margin-top:8px;padding:8px 12px;background:#EFF6FF;border-radius:8px;font-size:13px;color:#1E40AF"><strong>조치 계획:</strong> ${esc(item.action_plan)}</div>`:''}
+      </div>`}).join('')}
+    </div>`;
+}
+
+function openIssueModal(editId) {
+  pendingFiles = [];
+  const item = editId ? (state.data.issues||[]).find(i=>i.id===editId) : null;
+  const isEdit = !!item;
+  const v = item || {date:today(),category:ISSUE_CATEGORIES[0],title:'',target_line:'',target_product:'',detail:'',cause:'',impact:'',action_taken:'',action_plan:'',status:'대기',priority:'medium',reporter:'',responsible:'',due_date:'',completed_date:'',related_dept:'',notify_target:'',notes:''};
+  const body = `
+    <div class="form-grid">
+      ${field('발생일자',`<input type="date" id="f-date" class="input-full" value="${v.date}">`,true)}
+      ${field('분류',`<select id="f-cat" class="input-full">${selectOptions(ISSUE_CATEGORIES,v.category)}</select>`,true)}
+    </div>
+    ${field('이슈 제목',`<input id="f-title" class="input-full" value="${esc(v.title)}" placeholder="이슈를 한 줄로 요약해 주세요">`,true)}
+    <div class="form-grid">
+      ${field('대상 라인/설비',`<input id="f-tline" class="input-full" value="${esc(v.target_line)}" placeholder="예: 1호기, 코팅기 #2">`)}
+      ${field('관련 제품',`<input id="f-tproduct" class="input-full" value="${esc(v.target_product)}" placeholder="예: SY-200">`)}
+      ${field('보고자',`<input id="f-reporter" class="input-full" value="${esc(v.reporter)}" placeholder="이름">`,true)}
+      ${field('담당자',`<input id="f-resp" class="input-full" value="${esc(v.responsible)}" placeholder="조치 담당자">`)}
+      ${field('우선순위',`<select id="f-priority" class="input-full"><option value="high"${v.priority==='high'?' selected':''}>긴급</option><option value="medium"${v.priority==='medium'?' selected':''}>보통</option><option value="low"${v.priority==='low'?' selected':''}>낮음</option></select>`)}
+      ${field('상태',`<select id="f-status" class="input-full">${selectOptions(STATUS_LIST,v.status)}</select>`)}
+      ${field('관련 부서',`<input id="f-rdept" class="input-full" value="${esc(v.related_dept)}" placeholder="예: 생산팀, 기술팀">`)}
+      ${field('전파 대상',`<input id="f-notify" class="input-full" value="${esc(v.notify_target)}" placeholder="예: 전 공장, 품질팀">`)}
+      ${field('조치 기한',`<input type="date" id="f-due" class="input-full" value="${v.due_date||''}">`)}
+      ${field('완료일',`<input type="date" id="f-cdate" class="input-full" value="${v.completed_date||''}">`)}
+    </div>
+    ${field('상세 내용',`<textarea id="f-detail" class="input-full" rows="4" placeholder="이슈 상세 내용을 기입하세요 (발생 경위, 현상, 영향 등)">${esc(v.detail)}</textarea>`,true)}
+    ${field('원인 분석',`<textarea id="f-cause" class="input-full" rows="2" placeholder="원인 분석 결과">${esc(v.cause)}</textarea>`)}
+    ${field('영향 범위',`<textarea id="f-impact" class="input-full" rows="2" placeholder="해당 이슈로 인한 영향 범위 (생산 차질, 납기 영향 등)">${esc(v.impact)}</textarea>`)}
+    ${field('조치 계획',`<textarea id="f-aplan" class="input-full" rows="2" placeholder="향후 조치 계획">${esc(v.action_plan)}</textarea>`)}
+    ${field('조치 완료 내용',`<textarea id="f-ataken" class="input-full" rows="2" placeholder="실제 조치 완료된 내용">${esc(v.action_taken)}</textarea>`)}
+    ${field('비고',`<textarea id="f-notes" class="input-full" rows="2">${esc(v.notes)}</textarea>`)}
+    ${uploadZoneHtml('issue-upload')}
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveIssue('${editId||''}')">${isEdit?'수정':'등록'}</button>
+    </div>`;
+  showModal(isEdit?'이슈 수정':'이슈 등록', body, 680);
+}
+
+async function saveIssue(editId) {
+  const data = {date:$('f-date').value,category:$('f-cat').value,title:$('f-title').value,target_line:$('f-tline').value,target_product:$('f-tproduct').value,detail:$('f-detail').value,cause:$('f-cause').value,impact:$('f-impact').value,action_taken:$('f-ataken').value,action_plan:$('f-aplan').value,status:$('f-status').value,priority:$('f-priority').value,reporter:$('f-reporter').value,responsible:$('f-resp').value,due_date:$('f-due').value,completed_date:$('f-cdate').value,related_dept:$('f-rdept').value,notify_target:$('f-notify').value,notes:$('f-notes').value};
+  if(!data.date||!data.title||!data.detail||!data.reporter) return alert('필수 항목을 입력해주세요.');
+  let itemId=editId;
+  if(editId) {
+    const ex=(state.data.issues||[]).find(i=>i.id===editId); let h=[]; try{h=JSON.parse(ex.history||'[]')}catch(e){} h.push({action:'수정',date:nowStr()}); data.history=h;
+    await api.update('issues',editId,data);
+  } else { itemId=uuid(); data.id=itemId; data.history=[{action:'등록',date:nowStr()}]; await api.create('issues',data); }
+  if(pendingFiles.length>0) await api.upload('issues',itemId,pendingFiles);
+  closeModal(); await refresh();
+}
+
+async function openIssueDetail(id) {
+  const item=(state.data.issues||[]).find(i=>i.id===id); if(!item) return;
+  let history=[]; try{history=JSON.parse(item.history||'[]')}catch(e){}
+  const attachments = await api.getAttachments('issues', id);
+  const body = `
+    <div class="detail-grid">
+      ${[['발생일자',item.date],['분류',item.category],['대상 라인/설비',item.target_line||'-'],['관련 제품',item.target_product||'-'],['보고자',item.reporter||'-'],['담당자',item.responsible||'-'],['관련 부서',item.related_dept||'-'],['전파 대상',item.notify_target||'-'],['조치 기한',item.due_date||'-'],['완료일',item.completed_date||'-']].map(([l,v])=>`<div><div class="detail-label">${l}</div><div class="detail-value">${esc(v)||'-'}</div></div>`).join('')}
+      <div><div class="detail-label">상태</div>${badge(item.status)}</div>
+      <div><div class="detail-label">우선순위</div>${priorityHtml(item.priority)}</div>
+    </div>
+    <div class="detail-section"><div class="detail-section-label" style="font-size:13px;font-weight:700;color:#1E293B">${esc(item.title)}</div></div>
+    ${item.detail?`<div class="detail-section"><div class="detail-section-label">상세 내용</div><div class="detail-box" style="white-space:pre-wrap">${esc(item.detail)}</div></div>`:''}
+    ${item.cause?`<div class="detail-section"><div class="detail-section-label">원인 분석</div><div class="detail-box">${esc(item.cause)}</div></div>`:''}
+    ${item.impact?`<div class="detail-section"><div class="detail-section-label">영향 범위</div><div class="detail-box">${esc(item.impact)}</div></div>`:''}
+    ${item.action_plan?`<div class="detail-section"><div class="detail-section-label">조치 계획</div><div class="detail-box" style="background:#EFF6FF;color:#1E40AF">${esc(item.action_plan)}</div></div>`:''}
+    ${item.action_taken?`<div class="detail-section"><div class="detail-section-label">조치 완료 내용</div><div class="detail-box" style="background:#F0FDF4;color:#166534">${esc(item.action_taken)}</div></div>`:''}
+    ${item.notes?`<div class="detail-section"><div class="detail-section-label">비고</div><div class="detail-box">${esc(item.notes)}</div></div>`:''}
+    ${renderAttachments(attachments, true)}
+    ${history.length>0?`<div class="detail-section"><div class="detail-section-label">이력 추적</div><div class="timeline">${history.map(h=>`<div class="timeline-item"><span class="timeline-dot"></span><span class="timeline-date">${esc(h.date)}</span><span class="timeline-action">${esc(h.action)}</span></div>`).join('')}</div></div>`:''}`;
+  showModal('이슈사항 상세', body, 700);
+}
+
+// ─── Meetings (회의록) ─────────────────────────
+function renderMeetings() {
+  const f = state.filters.meetings;
+  const items = (state.data.meetings||[]).filter(i => {
+    if (f.type && i.meeting_type !== f.type) return false;
+    if (f.search) { const s=f.search.toLowerCase(); return [i.title,i.organizer,i.attendees,i.content,i.decisions].some(v=>(v||'').toLowerCase().includes(s)); }
+    return true;
+  });
+
+  return `
+    <div class="filters">
+      <input class="input-md" id="search-meetings" placeholder="검색 (제목, 주관자, 참석자, 내용)" value="${esc(f.search)}">
+      <select class="select-md" onchange="state.filters.meetings.type=this.value;renderContent()">${selectOptions(MEETING_TYPES,f.type,'전체 유형')}</select>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" onclick="openMeetingModal()">+ 회의록 작성</button>
+    </div>
+    <div class="card-list">
+      ${items.length===0?'<div class="card-item empty-row">등록된 회의록이 없습니다</div>':''}
+      ${items.map(item=>{
+        const typeColors = {'정기회의':'#2563EB','긴급회의':'#DC2626','품질회의':'#7C3AED','생산회의':'#EA580C','안전회의':'#DC2626','고객미팅':'#0891B2','공정개선':'#16A34A','교육/훈련':'#CA8A04','기타':'#64748B'};
+        const tc = typeColors[item.meeting_type]||'#64748B';
+        const timeStr = [item.start_time,item.end_time].filter(Boolean).join(' ~ ');
+        return `<div class="card-item" style="border-left:3px solid ${tc}">
+        <div class="card-header">
+          <div class="card-tags">
+            <span style="padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;background:${tc}15;color:${tc}">${esc(item.meeting_type||'기타')}</span>
+            <span style="font-size:12px;color:#94A3B8">${esc(item.date)}${timeStr?' '+timeStr:''}</span>
+            ${item.location?`<span style="font-size:12px;color:#94A3B8">📍${esc(item.location)}</span>`:''}
+            ${attachCountHtml(item.attachment_count)}
+          </div>
+          <div>
+            <button class="btn-icon" onclick="openMeetingDetail('${item.id}')">👁️</button>
+            <button class="btn-icon" onclick="openMeetingModal('${item.id}')">✏️</button>
+            <button class="btn-icon" onclick="deleteItem('meetings','${item.id}')">🗑️</button>
+          </div>
+        </div>
+        <div style="font-size:15px;font-weight:700;color:#1E293B;margin-bottom:6px">${esc(item.title)}</div>
+        <div class="card-meta">
+          ${item.organizer?`<span>주관: <strong>${esc(item.organizer)}</strong></span>`:''}
+          ${item.attendees?`<span>참석: <strong>${esc(item.attendees.length>40?item.attendees.slice(0,40)+'...':item.attendees)}</strong></span>`:''}
+        </div>
+        <div class="card-content" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(item.content)}</div>
+        ${item.decisions?`<div class="card-action"><strong>결정사항:</strong> ${esc(item.decisions.length>80?item.decisions.slice(0,80)+'...':item.decisions)}</div>`:''}
+        ${item.action_items?`<div style="margin-top:6px;padding:8px 12px;background:#EFF6FF;border-radius:8px;font-size:13px;color:#1E40AF"><strong>Action Items:</strong> ${esc(item.action_items.length>80?item.action_items.slice(0,80)+'...':item.action_items)}</div>`:''}
+      </div>`}).join('')}
+    </div>`;
+}
+
+function openMeetingModal(editId) {
+  pendingFiles = [];
+  const item = editId ? (state.data.meetings||[]).find(i=>i.id===editId) : null;
+  const isEdit = !!item;
+  const v = item || {date:today(),start_time:'',end_time:'',title:'',meeting_type:MEETING_TYPES[0],location:'',organizer:'',attendees:'',agenda:'',content:'',decisions:'',action_items:'',next_meeting:'',notes:''};
+  const body = `
+    <div class="form-grid">
+      ${field('회의일자',`<input type="date" id="f-date" class="input-full" value="${v.date}">`,true)}
+      ${field('회의유형',`<select id="f-mtype" class="input-full">${selectOptions(MEETING_TYPES,v.meeting_type)}</select>`)}
+      ${field('시작시간',`<input type="time" id="f-stime" class="input-full" value="${v.start_time||''}">`)}
+      ${field('종료시간',`<input type="time" id="f-etime" class="input-full" value="${v.end_time||''}">`)}
+    </div>
+    ${field('회의 제목',`<input id="f-title" class="input-full" value="${esc(v.title)}" placeholder="회의 제목을 입력하세요">`,true)}
+    <div class="form-grid">
+      ${field('장소',`<input id="f-location" class="input-full" value="${esc(v.location)}" placeholder="예: 본사 3층 회의실">`)}
+      ${field('주관자',`<input id="f-organizer" class="input-full" value="${esc(v.organizer)}" placeholder="이름">`)}
+    </div>
+    ${field('참석자',`<textarea id="f-attendees" class="input-full" rows="2" placeholder="참석자 전원 기입 (예: 홍길동(품질), 김철수(생산), 이영희(기술))">${esc(v.attendees)}</textarea>`)}
+    ${field('안건 (Agenda)',`<textarea id="f-agenda" class="input-full" rows="3" placeholder="1. 금주 불량 현황 검토\n2. 원료 품질 이슈 논의\n3. 공정 개선안 검토">${esc(v.agenda)}</textarea>`)}
+    ${field('회의 내용',`<textarea id="f-content" class="input-full" rows="6" placeholder="회의에서 논의된 내용을 상세히 기록하세요">${esc(v.content)}</textarea>`,true)}
+    ${field('결정사항',`<textarea id="f-decisions" class="input-full" rows="3" placeholder="회의에서 확정된 결정사항을 기록하세요\n(예: 1호기 점검 일정 - 4/15 실시 확정)">${esc(v.decisions)}</textarea>`)}
+    ${field('Action Items (후속 조치)',`<textarea id="f-aitems" class="input-full" rows="3" placeholder="담당자별 후속 조치 사항\n(예: 홍길동 - 불량률 분석 보고서 4/10까지 제출)">${esc(v.action_items)}</textarea>`)}
+    ${field('차기 회의',`<input id="f-nextm" class="input-full" value="${esc(v.next_meeting)}" placeholder="예: 4/15(화) 10:00 정기회의">`)}
+    ${field('비고',`<textarea id="f-notes" class="input-full" rows="2">${esc(v.notes)}</textarea>`)}
+    ${uploadZoneHtml('meeting-upload')}
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveMeeting('${editId||''}')">${isEdit?'수정':'작성'}</button>
+    </div>`;
+  showModal(isEdit?'회의록 수정':'회의록 작성', body, 700);
+}
+
+async function saveMeeting(editId) {
+  const data = {date:$('f-date').value,start_time:$('f-stime').value,end_time:$('f-etime').value,title:$('f-title').value,meeting_type:$('f-mtype').value,location:$('f-location').value,organizer:$('f-organizer').value,attendees:$('f-attendees').value,agenda:$('f-agenda').value,content:$('f-content').value,decisions:$('f-decisions').value,action_items:$('f-aitems').value,next_meeting:$('f-nextm').value,notes:$('f-notes').value};
+  if(!data.date||!data.title||!data.content) return alert('필수 항목을 입력해주세요.');
+  let itemId=editId;
+  if(editId) {
+    await api.update('meetings',editId,data);
+  } else { itemId=uuid(); data.id=itemId; await api.create('meetings',data); }
+  if(pendingFiles.length>0) await api.upload('meetings',itemId,pendingFiles);
+  closeModal(); await refresh();
+}
+
+async function openMeetingDetail(id) {
+  const item=(state.data.meetings||[]).find(i=>i.id===id); if(!item) return;
+  const attachments = await api.getAttachments('meetings', id);
+  const timeStr = [item.start_time,item.end_time].filter(Boolean).join(' ~ ');
+  const body = `
+    <div class="detail-grid">
+      ${[['회의일자',item.date],['시간',timeStr||'-'],['유형',item.meeting_type||'-'],['장소',item.location||'-'],['주관자',item.organizer||'-'],['차기 회의',item.next_meeting||'-']].map(([l,v])=>`<div><div class="detail-label">${l}</div><div class="detail-value">${esc(v)||'-'}</div></div>`).join('')}
+    </div>
+    <div class="detail-section"><div class="detail-section-label" style="font-size:15px;font-weight:700;color:#1E293B;margin-bottom:8px">${esc(item.title)}</div></div>
+    ${item.attendees?`<div class="detail-section"><div class="detail-section-label">참석자</div><div class="detail-box">${esc(item.attendees)}</div></div>`:''}
+    ${item.agenda?`<div class="detail-section"><div class="detail-section-label">안건 (Agenda)</div><div class="detail-box" style="white-space:pre-wrap">${esc(item.agenda)}</div></div>`:''}
+    ${item.content?`<div class="detail-section"><div class="detail-section-label">회의 내용</div><div class="detail-box" style="white-space:pre-wrap;min-height:80px">${esc(item.content)}</div></div>`:''}
+    ${item.decisions?`<div class="detail-section"><div class="detail-section-label">결정사항</div><div class="detail-box" style="background:#F0FDF4;color:#166534;white-space:pre-wrap">${esc(item.decisions)}</div></div>`:''}
+    ${item.action_items?`<div class="detail-section"><div class="detail-section-label">Action Items (후속 조치)</div><div class="detail-box" style="background:#EFF6FF;color:#1E40AF;white-space:pre-wrap">${esc(item.action_items)}</div></div>`:''}
+    ${item.notes?`<div class="detail-section"><div class="detail-section-label">비고</div><div class="detail-box">${esc(item.notes)}</div></div>`:''}
+    ${renderAttachments(attachments, true)}`;
+  showModal('회의록 상세', body, 720);
+}
+
+// ─── Returns (반품현황) ─────────────────────────
+function renderReturns() {
+  const f = state.filters.returns;
+  const items = (state.data.returns||[]).filter(i => {
+    if (f.status && i.status !== f.status) return false;
+    if (f.search) { const s=f.search.toLowerCase(); return [i.product,i.lot_no,i.customer,i.return_reason,i.responsible].some(v=>(v||'').toLowerCase().includes(s)); }
+    return true;
+  });
+  const all = state.data.returns||[];
+  const stats = [
+    {label:'전체 반품',val:all.length,color:'#1E293B',icon:'📋'},
+    {label:'접수',val:all.filter(i=>i.status==='대기').length,color:'#F59E0B',icon:'⏳'},
+    {label:'처리중',val:all.filter(i=>i.status==='진행중').length,color:'#3B82F6',icon:'🔧'},
+    {label:'완료',val:all.filter(i=>i.status==='완료').length,color:'#10B981',icon:'✅'},
+  ];
+  return `
+    <div class="stats-grid">${stats.map(s=>`<div class="stat-card"><span class="stat-icon">${s.icon}</span><div><div class="stat-label">${s.label}</div><div class="stat-value" style="color:${s.color}">${s.val}</div></div></div>`).join('')}</div>
+    <div class="filters">
+      <input class="input-md" id="search-returns" placeholder="검색 (제품, LOT, 고객, 반품사유)" value="${esc(f.search)}">
+      <select class="select-sm" onchange="state.filters.returns.status=this.value;renderContent()">${selectOptions(STATUS_LIST,f.status,'전체 상태')}</select>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" onclick="openReturnModal()">+ 반품 등록</button>
+    </div>
+    <div class="table-wrap"><table><thead><tr>
+      <th>접수일</th><th>고객사</th><th>제품명</th><th>규격</th><th>LOT No.</th><th>반품사유</th><th>수량</th><th>상태</th><th>담당자</th><th>첨부</th><th></th>
+    </tr></thead><tbody>
+      ${items.length===0?'<tr><td colspan="11" class="empty-row">등록된 반품 내역이 없습니다</td></tr>':''}
+      ${items.map(item=>`<tr onclick="openReturnDetail('${item.id}')" style="cursor:pointer">
+        <td class="td-nowrap">${esc(item.return_date)}</td>
+        <td class="td-bold">${esc(item.customer)}</td>
+        <td class="td-bold">${esc(item.product)}</td>
+        <td class="td-dim">${esc(item.spec)}</td>
+        <td class="td-mono">${esc(item.lot_no)}</td>
+        <td>${esc(item.return_reason)}</td>
+        <td class="td-right">${esc(item.quantity)}</td>
+        <td>${badge(item.status)}</td>
+        <td>${esc(item.responsible)}</td>
+        <td>${attachCountHtml(item.attachment_count)}</td>
+        <td onclick="event.stopPropagation()">
+          <button class="btn-icon" onclick="openReturnModal('${item.id}')">✏️</button>
+          <button class="btn-icon" onclick="deleteItem('returns','${item.id}')">🗑️</button>
+        </td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+function openReturnModal(editId) {
+  pendingFiles = [];
+  const item = editId ? (state.data.returns||[]).find(i=>i.id===editId) : null;
+  const isEdit = !!item;
+  const v = item || {return_date:today(),customer:'',product:'',spec:'',lot_no:'',return_reason:RETURN_REASONS[0],quantity:'',return_qty_unit:'',delivery_date:'',claim_detail:'',inspection_result:'',cause:'',action:'',disposition:'',status:'대기',priority:'medium',responsible:'',sales_rep:'',due_date:'',completed_date:'',cost:'',notes:''};
+  const body = `
+    <div class="form-grid">
+      ${field('접수일',`<input type="date" id="f-rdate" class="input-full" value="${v.return_date}">`,true)}
+      ${field('고객사',`<input id="f-customer" class="input-full" value="${esc(v.customer)}" placeholder="고객사명">`,true)}
+      ${field('제품명',`<input id="f-product" class="input-full" value="${esc(v.product)}" placeholder="예: SY-200">`,true)}
+      ${field('규격',`<input id="f-spec" class="input-full" value="${esc(v.spec)}" placeholder="예: 25μ X 1,000mm X 4,000m">`)}
+      ${field('LOT No.',`<input id="f-lotno" class="input-full" value="${esc(v.lot_no)}">`)}
+      ${field('납품일',`<input type="date" id="f-ddate" class="input-full" value="${v.delivery_date||''}">`)}
+      ${field('반품사유',`<select id="f-reason" class="input-full">${selectOptions(RETURN_REASONS,v.return_reason)}</select>`,true)}
+      ${field('반품수량',`<input id="f-qty" class="input-full" value="${esc(v.quantity)}" placeholder="예: 5롤, 500kg">`)}
+      ${field('상태',`<select id="f-status" class="input-full">${selectOptions(STATUS_LIST,v.status)}</select>`)}
+      ${field('우선순위',`<select id="f-priority" class="input-full"><option value="high"${v.priority==='high'?' selected':''}>긴급</option><option value="medium"${v.priority==='medium'?' selected':''}>보통</option><option value="low"${v.priority==='low'?' selected':''}>낮음</option></select>`)}
+      ${field('품질 담당자',`<input id="f-resp" class="input-full" value="${esc(v.responsible)}">`)}
+      ${field('영업 담당자',`<input id="f-sales" class="input-full" value="${esc(v.sales_rep)}">`)}
+      ${field('처리 기한',`<input type="date" id="f-due" class="input-full" value="${v.due_date||''}">`)}
+      ${field('완료일',`<input type="date" id="f-cdate" class="input-full" value="${v.completed_date||''}">`)}
+    </div>
+    ${field('고객 클레임 내용',`<textarea id="f-claim" class="input-full" rows="3" placeholder="고객이 제기한 클레임 내용을 상세히 기입하세요">${esc(v.claim_detail)}</textarea>`)}
+    ${field('검사/분석 결과',`<textarea id="f-inspect" class="input-full" rows="3" placeholder="반품 제품 검사 및 분석 결과">${esc(v.inspection_result)}</textarea>`)}
+    ${field('원인 분석',`<textarea id="f-cause" class="input-full" rows="2" placeholder="반품 원인 분석">${esc(v.cause)}</textarea>`)}
+    ${field('조치 내용',`<textarea id="f-action" class="input-full" rows="2" placeholder="시정/예방 조치 내용">${esc(v.action)}</textarea>`)}
+    ${field('반품 처리 방법',`<input id="f-disp" class="input-full" value="${esc(v.disposition)}" placeholder="예: 교환, 환불, 재가공, 폐기">`)}
+    ${field('손실 비용',`<input id="f-cost" class="input-full" value="${esc(v.cost)}" placeholder="예: 500,000원">`)}
+    ${field('비고',`<textarea id="f-notes" class="input-full" rows="2">${esc(v.notes)}</textarea>`)}
+    ${uploadZoneHtml('return-upload')}
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveReturn('${editId||''}')">${isEdit?'수정':'등록'}</button>
+    </div>`;
+  showModal(isEdit?'반품 수정':'반품 등록', body, 680);
+}
+
+async function saveReturn(editId) {
+  const data = {return_date:$('f-rdate').value,customer:$('f-customer').value,product:$('f-product').value,spec:$('f-spec').value,lot_no:$('f-lotno').value,delivery_date:$('f-ddate').value,return_reason:$('f-reason').value,quantity:$('f-qty').value,claim_detail:$('f-claim').value,inspection_result:$('f-inspect').value,cause:$('f-cause').value,action:$('f-action').value,disposition:$('f-disp').value,status:$('f-status').value,priority:$('f-priority').value,responsible:$('f-resp').value,sales_rep:$('f-sales').value,due_date:$('f-due').value,completed_date:$('f-cdate').value,cost:$('f-cost').value,notes:$('f-notes').value};
+  if(!data.return_date||!data.customer||!data.product) return alert('필수 항목을 입력해주세요.');
+  let itemId=editId;
+  if(editId) {
+    await api.update('returns',editId,data);
+  } else { itemId=uuid(); data.id=itemId; await api.create('returns',data); }
+  if(pendingFiles.length>0) await api.upload('returns',itemId,pendingFiles);
+  closeModal(); await refresh();
+}
+
+async function openReturnDetail(id) {
+  const item=(state.data.returns||[]).find(i=>i.id===id); if(!item) return;
+  const attachments = await api.getAttachments('returns', id);
+  const body = `
+    <div class="detail-grid">
+      ${[['접수일',item.return_date],['고객사',item.customer],['제품명',item.product],['규격',item.spec||'-'],['LOT No.',item.lot_no||'-'],['납품일',item.delivery_date||'-'],['반품사유',item.return_reason],['반품수량',item.quantity||'-'],['품질담당',item.responsible||'-'],['영업담당',item.sales_rep||'-'],['처리기한',item.due_date||'-'],['완료일',item.completed_date||'-'],['처리방법',item.disposition||'-'],['손실비용',item.cost||'-']].map(([l,v])=>`<div><div class="detail-label">${l}</div><div class="detail-value">${esc(v)||'-'}</div></div>`).join('')}
+      <div><div class="detail-label">상태</div>${badge(item.status)}</div>
+      <div><div class="detail-label">우선순위</div>${priorityHtml(item.priority)}</div>
+    </div>
+    ${item.claim_detail?`<div class="detail-section"><div class="detail-section-label">고객 클레임 내용</div><div class="detail-box" style="white-space:pre-wrap">${esc(item.claim_detail)}</div></div>`:''}
+    ${item.inspection_result?`<div class="detail-section"><div class="detail-section-label">검사/분석 결과</div><div class="detail-box" style="white-space:pre-wrap">${esc(item.inspection_result)}</div></div>`:''}
+    ${item.cause?`<div class="detail-section"><div class="detail-section-label">원인 분석</div><div class="detail-box">${esc(item.cause)}</div></div>`:''}
+    ${item.action?`<div class="detail-section"><div class="detail-section-label">조치 내용</div><div class="detail-box" style="background:#F0FDF4;color:#166534">${esc(item.action)}</div></div>`:''}
+    ${item.notes?`<div class="detail-section"><div class="detail-section-label">비고</div><div class="detail-box">${esc(item.notes)}</div></div>`:''}
+    ${renderAttachments(attachments, true)}`;
+  showModal('반품 상세', body, 700);
+}
+
+// ─── Analytics (불량집계) ─────────────────────────
+let analyticsData = null;
+let analyticsCompare = null;
+let analyticsMonth = []; // [] = 전체, [1,3] = 1월+3월
+
+function renderAnalytics() {
+  return `
+    <div style="margin-bottom:20px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="upload-zone" id="analytics-upload" style="padding:20px"
+          onclick="document.getElementById('analytics-file').click()"
+          ondragover="event.preventDefault();this.classList.add('dragover')"
+          ondragleave="this.classList.remove('dragover')"
+          ondrop="event.preventDefault();this.classList.remove('dragover');handleAFile(event,false)">
+          <div class="upload-zone-icon">📊</div>
+          <div class="upload-zone-text" id="upload-label-main">${analyticsData ? '✅ 메인 데이터 로드됨 ('+analyticsData.length+'건)' : '메인 데이터 엑셀 업로드'}</div>
+          <div class="upload-zone-hint">분석할 불량집계 엑셀 파일</div>
+        </div>
+        <div class="upload-zone" id="analytics-upload2" style="padding:20px"
+          onclick="document.getElementById('analytics-file2').click()"
+          ondragover="event.preventDefault();this.classList.add('dragover')"
+          ondragleave="this.classList.remove('dragover')"
+          ondrop="event.preventDefault();this.classList.remove('dragover');handleAFile(event,true)">
+          <div class="upload-zone-icon">📊</div>
+          <div class="upload-zone-text" id="upload-label-comp">${analyticsCompare ? '✅ 비교 데이터 로드됨 ('+analyticsCompare.length+'건)' : '비교 데이터 엑셀 업로드 (선택)'}</div>
+          <div class="upload-zone-hint">이전 연도 등 비교할 데이터 (선택사항)</div>
+        </div>
+      </div>
+      <input type="file" id="analytics-file" accept=".xlsx,.xls" style="display:none" onchange="loadAFile(this.files[0],false)">
+      <input type="file" id="analytics-file2" accept=".xlsx,.xls" style="display:none" onchange="loadAFile(this.files[0],true)">
+    </div>
+    <div id="analytics-result"></div>
+  `;
+}
+
+function initAnalytics() {
+  if (analyticsData) renderAnalyticsResult();
+}
+
+function toggleMonth(m) {
+  const idx = analyticsMonth.indexOf(m);
+  if (idx >= 0) analyticsMonth.splice(idx, 1);
+  else analyticsMonth.push(m);
+  analyticsMonth.sort((a,b)=>a-b);
+  renderAnalyticsResult();
+}
+
+let _teamChartInstance = null;
+function renderTeamChart(teamName) {
+  const filtered = analyticsMonth.length === 0 ? analyticsData : analyticsData.filter(r => analyticsMonth.includes(r._month));
+  const teamData = filtered.filter(r => {
+    const t = (r.팀||'미분류');
+    return t === teamName;
+  });
+  if (teamData.length === 0) return;
+
+  const teamTypes = pivot(teamData, '불량유형');
+  const total = teamData.length;
+  const monthLabel = analyticsMonth.length === 0 ? '전체' : analyticsMonth.map(m=>m+'월').join('+');
+
+  // 영역 표시
+  const area = $('team-detail-area');
+  if (area) area.style.display = 'block';
+
+  // 테이블
+  const tableEl = $('team-detail-table');
+  if (tableEl) {
+    tableEl.innerHTML = `
+      <div style="font-size:13px;font-weight:700;color:#1E293B;margin-bottom:8px">${teamName}팀 불량유형별 집계 (${monthLabel}, ${total}건)</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="background:#F8FAFC">
+          <th style="padding:6px 10px;text-align:left;font-weight:700;color:#64748B;border-bottom:1px solid #E2E8F0">불량유형</th>
+          <th style="padding:6px 10px;text-align:right;font-weight:700;color:#64748B;border-bottom:1px solid #E2E8F0">건수</th>
+          <th style="padding:6px 10px;text-align:right;font-weight:700;color:#64748B;border-bottom:1px solid #E2E8F0">비율(%)</th>
+        </tr></thead>
+        <tbody>
+          ${teamTypes.map((d,i)=>`<tr style="border-bottom:1px solid #F1F5F9${i%2===0?';background:#F8FAFC':''}">
+            <td style="padding:6px 10px;font-weight:600;color:#1E293B">${esc(d.name)}</td>
+            <td style="padding:6px 10px;text-align:right;font-weight:700;color:#3B82F6">${d.count}</td>
+            <td style="padding:6px 10px;text-align:right;color:#64748B">${d.rate}%</td>
+          </tr>`).join('')}
+          <tr style="background:#1E40AF"><td style="padding:6px 10px;font-weight:700;color:#fff">합계</td><td style="padding:6px 10px;text-align:right;font-weight:700;color:#fff">${total}</td><td style="padding:6px 10px;text-align:right;font-weight:700;color:#fff">100.0%</td></tr>
+        </tbody>
+      </table>
+    `;
+  }
+
+  // 타이틀
+  const titleEl = $('team-detail-title');
+  if (titleEl) titleEl.textContent = `${teamName}팀 불량유형 분포 (${monthLabel})`;
+
+  // 차트
+  if (_teamChartInstance) { _teamChartInstance.destroy(); _teamChartInstance = null; }
+  const canvas = $('chart-team-detail');
+  if (canvas) {
+    _teamChartInstance = new Chart(canvas, {
+      type:'doughnut',
+      data:{
+        labels: teamTypes.map(d=>d.name),
+        datasets:[{data:teamTypes.map(d=>d.count),backgroundColor:CHART_COLORS.slice(0,teamTypes.length),borderWidth:2,borderColor:'#fff'}]
+      },
+      options:{responsive:true,plugins:{legend:{position:'right',labels:{font:{size:11,family:'Pretendard'},padding:6,usePointStyle:true,pointStyleWidth:10,generateLabels:chart=>{const ds=chart.data.datasets[0];const t=ds.data.reduce((s,v)=>s+v,0);return chart.data.labels.map((l,i)=>({text:l+' '+ds.data[i]+'건 ('+(ds.data[i]/t*100).toFixed(1)+'%)',fillStyle:ds.backgroundColor[i],strokeStyle:ds.backgroundColor[i],index:i}))}}}}},
+      plugins:[dataLabelPlugin]
+    });
+  }
+
+  // 스크롤
+  if (area) area.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function handleAFile(e, isCompare) {
+  const file = e.dataTransfer.files[0];
+  if (file) loadAFile(file, isCompare);
+}
+
+function parseExcelData(arrayBuffer) {
+  const wb = XLSX.read(arrayBuffer, { type:'array', cellDates:true });
+  let sheetName = wb.SheetNames.find(n => n.includes('불량발생')) || wb.SheetNames[0];
+  const raw = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval:'' });
+  return raw.filter(r => {
+    const d = r['접수일자'];
+    if (!d) return false;
+    const dt = (d instanceof Date) ? d : new Date(d);
+    return !isNaN(dt.getTime());
+  }).map(r => {
+    const d = r['접수일자'];
+    const dt = (d instanceof Date) ? d : new Date(d);
+    return { ...r, _date:dt, _month:dt.getMonth()+1, _year:dt.getFullYear(),
+      생산호기:(r['생산호기']||'').toString().trim(), 업체:(r['업체']||'').toString().trim(),
+      불량유형:(r['불량유형']||'').toString().trim(), 팀:(r['팀']||'').toString().trim(),
+      작업자:(r['작업자']||'').toString().trim(),
+    };
+  }).filter(r => r.불량유형);
+}
+
+function loadAFile(file, isCompare) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = parseExcelData(e.target.result);
+    if (isCompare) {
+      analyticsCompare = data;
+      const el = $('upload-label-comp');
+      if(el) el.textContent = '✅ 비교 데이터 로드됨 ('+data.length+'건)';
+    } else {
+      analyticsData = data;
+      analyticsMonth = [];
+      const el = $('upload-label-main');
+      if(el) el.textContent = '✅ 메인 데이터 로드됨 ('+data.length+'건)';
+    }
+    renderAnalyticsResult();
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+const CHART_COLORS = ['#3B82F6','#EF4444','#F59E0B','#10B981','#8B5CF6','#EC4899','#06B6D4','#F97316','#6366F1','#14B8A6','#E11D48','#A855F7','#0EA5E9','#84CC16','#D946EF','#78716C','#BE185D','#0D9488','#DC2626','#7C3AED'];
+const CHART_COLORS2 = ['#93C5FD','#FCA5A5','#FCD34D','#6EE7B7','#C4B5FD','#F9A8D4','#67E8F9','#FDBA74','#A5B4FC','#5EEAD4'];
+
+function pivot(arr, key) {
+  const map = {};
+  arr.forEach(r => { const k = r[key] || '미분류'; map[k] = (map[k]||0)+1; });
+  return Object.entries(map).sort((a,b)=>b[1]-a[1]).map(([name,count])=>({name,count,rate:(count/arr.length*100).toFixed(1)}));
+}
+
+// Chart.js 데이터 레이블 플러그인 (자체 구현)
+const dataLabelPlugin = {
+  id:'customDataLabels',
+  afterDatasetsDraw(chart) {
+    const ctx = chart.ctx;
+    const chartArea = chart.chartArea;
+    chart.data.datasets.forEach((ds, di) => {
+      const meta = chart.getDatasetMeta(di);
+      meta.data.forEach((el, i) => {
+        const val = ds.data[i];
+        if (val === 0 || val === undefined) return;
+        ctx.save();
+
+        if (chart.config.type === 'doughnut' || chart.config.type === 'pie') {
+          const total = ds.data.reduce((s,v)=>s+v,0);
+          const pct = (val/total*100).toFixed(1);
+          const pctNum = parseFloat(pct);
+          const label = chart.data.labels[i].split(' (')[0].split('팀')[0];
+          const arc = el;
+          const angleDiff = arc.endAngle - arc.startAngle;
+          const angle = (arc.startAngle + arc.endAngle) / 2;
+          if (pctNum < 2) { ctx.restore(); return; }
+          const outerR = arc.outerRadius;
+          const innerR = arc.innerRadius || 0;
+          const r = (innerR + outerR) / 2;
+          const arcWidth = outerR - innerR;
+          const arcLen = angleDiff * r;
+          const x = arc.x + Math.cos(angle) * r;
+          const y = arc.y + Math.sin(angle) * r;
+          ctx.fillStyle = '#fff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          const maxW = Math.max(arcLen * 0.85, 30);
+          if (pctNum >= 8 && arcLen > 40) {
+            // 충분한 공간: 2줄 (이름 + 건수/비율)
+            const fs = Math.max(8, Math.min(13, arcLen * 0.18, arcWidth * 0.25));
+            ctx.font = `bold ${fs}px Pretendard, sans-serif`;
+            ctx.fillText(label, x, y - fs * 0.6, maxW);
+            ctx.font = `${Math.max(7, fs - 1)}px Pretendard, sans-serif`;
+            ctx.fillText(val+'건('+pct+'%)', x, y + fs * 0.6, maxW);
+          } else if (pctNum >= 3 && arcLen > 20) {
+            // 좁은 공간: 1줄
+            const fs = Math.max(7, Math.min(10, arcLen * 0.15, arcWidth * 0.22));
+            ctx.font = `bold ${fs}px Pretendard, sans-serif`;
+            ctx.fillText(label+' '+val, x, y, maxW);
+          }
+        } else if (chart.config.type === 'bar') {
+          ctx.fillStyle = '#334155';
+          ctx.textBaseline = 'middle';
+          const fontSize = Math.max(9, Math.min(11, 11));
+          ctx.font = `bold ${fontSize}px Pretendard, sans-serif`;
+          if (chart.options.indexAxis === 'y') {
+            const maxX = chartArea ? chartArea.right : chart.width;
+            const textW = ctx.measureText(val+'건').width;
+            if (el.x + 6 + textW > maxX - 4) {
+              ctx.fillStyle = '#fff';
+              ctx.textAlign = 'right';
+              ctx.fillText(val+'건', el.x - 6, el.y);
+            } else {
+              ctx.textAlign = 'left';
+              ctx.fillText(val+'건', el.x + 6, el.y);
+            }
+          } else {
+            ctx.textAlign = 'center';
+            const minY = chartArea ? chartArea.top : 0;
+            if (el.y - 12 < minY) {
+              ctx.fillStyle = '#fff';
+              ctx.fillText(val+'건', el.x, el.y + 12);
+            } else {
+              ctx.fillText(val+'건', el.x, el.y - 10);
+            }
+          }
+        }
+        ctx.restore();
+      });
+    });
+  }
+};
+
+function renderAnalyticsResult() {
+  if (!analyticsData || analyticsData.length === 0) {
+    const el = $('analytics-result');
+    if(el) el.innerHTML = '<div style="text-align:center;color:#94A3B8;padding:40px">메인 데이터 엑셀 파일을 업로드하세요.</div>';
+    return;
+  }
+
+  const months = [...new Set(analyticsData.map(r => r._month))].sort((a,b)=>a-b);
+  const filtered = analyticsMonth.length === 0 ? analyticsData : analyticsData.filter(r => analyticsMonth.includes(r._month));
+  const total = filtered.length;
+  if (total === 0) { $('analytics-result').innerHTML = '<div style="text-align:center;color:#94A3B8;padding:40px">선택한 월에 데이터가 없습니다.</div>'; return; }
+
+  const monthLabel = analyticsMonth.length === 0 ? '전체' : analyticsMonth.map(m=>m+'월').join('+');
+  const byType = pivot(filtered, '불량유형');
+  const byLine = pivot(filtered, '생산호기');
+  const byCompany = pivot(filtered, '업체');
+  const byTeam = pivot(filtered, '팀');
+  const worstLines = byLine.slice(0,5);
+  const worstCompanies = byCompany.slice(0,5);
+
+  const lineTypes = {};
+  filtered.forEach(r => { const l=r.생산호기||'미분류'; if(!lineTypes[l])lineTypes[l]={}; const t=r.불량유형||'미분류'; lineTypes[l][t]=(lineTypes[l][t]||0)+1; });
+  const companyTypes = {};
+  filtered.forEach(r => { const c=r.업체||'미분류'; if(!companyTypes[c])companyTypes[c]={}; const t=r.불량유형||'미분류'; companyTypes[c][t]=(companyTypes[c][t]||0)+1; });
+
+  function pivotTableHtml(title, data, icon) {
+    return `<div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;overflow:hidden">
+      <div style="padding:14px 16px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;font-size:14px;font-weight:700;color:#1E293B">${icon} ${title}</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#F8FAFC">
+        <th style="padding:8px 12px;text-align:left;font-weight:700;color:#64748B;font-size:12px;border-bottom:1px solid #E2E8F0">항목</th>
+        <th style="padding:8px 12px;text-align:right;font-weight:700;color:#64748B;font-size:12px;border-bottom:1px solid #E2E8F0">건수</th>
+        <th style="padding:8px 12px;text-align:right;font-weight:700;color:#64748B;font-size:12px;border-bottom:1px solid #E2E8F0">비율(%)</th>
+        <th style="padding:8px 12px;text-align:left;font-weight:700;color:#64748B;font-size:12px;border-bottom:1px solid #E2E8F0;width:40%">분포</th>
+      </tr></thead><tbody>
+        ${data.map((d,i)=>`<tr style="border-bottom:1px solid #F1F5F9">
+          <td style="padding:8px 12px;font-weight:600;color:#1E293B">${esc(d.name)}</td>
+          <td style="padding:8px 12px;text-align:right;font-weight:700;color:#3B82F6">${d.count}</td>
+          <td style="padding:8px 12px;text-align:right;color:#64748B">${d.rate}%</td>
+          <td style="padding:8px 12px"><div style="background:#E2E8F0;border-radius:4px;height:18px;overflow:hidden"><div style="height:100%;background:${CHART_COLORS[i%CHART_COLORS.length]};border-radius:4px;width:${d.rate}%;min-width:2px"></div></div></td>
+        </tr>`).join('')}
+        <tr style="background:#F8FAFC;font-weight:700"><td style="padding:8px 12px;color:#1E293B">합계</td><td style="padding:8px 12px;text-align:right;color:#1E293B">${data.reduce((s,d)=>s+d.count,0)}</td><td style="padding:8px 12px;text-align:right;color:#1E293B">100.0%</td><td></td></tr>
+      </tbody></table></div>`;
+  }
+
+  function crossTabHtml(title, crossData, icon) {
+    const allTypes = [...new Set(filtered.map(r=>r.불량유형))].sort();
+    const entries = Object.entries(crossData).sort((a,b)=>Object.values(b[1]).reduce((s,v)=>s+v,0)-Object.values(a[1]).reduce((s,v)=>s+v,0)).slice(0,10);
+    return `<div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;overflow:hidden">
+      <div style="padding:14px 16px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;font-size:14px;font-weight:700;color:#1E293B">${icon} ${title}</div>
+      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#F8FAFC">
+        <th style="padding:6px 10px;text-align:left;font-weight:700;color:#64748B;border-bottom:1px solid #E2E8F0;position:sticky;left:0;background:#F8FAFC">항목</th>
+        ${allTypes.map(t=>`<th style="padding:6px 8px;text-align:center;font-weight:600;color:#64748B;border-bottom:1px solid #E2E8F0;white-space:nowrap">${esc(t)}</th>`).join('')}
+        <th style="padding:6px 10px;text-align:center;font-weight:700;color:#1E293B;border-bottom:1px solid #E2E8F0">합계</th>
+      </tr></thead><tbody>
+        ${entries.map(([name,types])=>{const rt=Object.values(types).reduce((s,v)=>s+v,0);return `<tr style="border-bottom:1px solid #F1F5F9">
+          <td style="padding:6px 10px;font-weight:600;color:#1E293B;white-space:nowrap;position:sticky;left:0;background:#fff">${esc(name)}</td>
+          ${allTypes.map(t=>`<td style="padding:6px 8px;text-align:center;${types[t]?'font-weight:700;color:#1E293B':'color:#CBD5E1'}">${types[t]||'-'}</td>`).join('')}
+          <td style="padding:6px 10px;text-align:center;font-weight:700;color:#3B82F6">${rt}</td></tr>`}).join('')}
+      </tbody></table></div></div>`;
+  }
+
+  // 비교 데이터 처리
+  let compareHtml = '';
+  if (analyticsCompare && analyticsCompare.length > 0) {
+    const compFiltered = analyticsMonth.length === 0 ? analyticsCompare : analyticsCompare.filter(r => analyticsMonth.includes(r._month));
+    if (compFiltered.length > 0) {
+      // 메인 연도 / 비교 연도 추출
+      const mainYear = [...new Set(filtered.map(r=>r._year))].sort().join('/');
+      const compYear = [...new Set(compFiltered.map(r=>r._year))].sort().join('/');
+
+      // 모든 호기 합치기
+      const allLines = [...new Set([...filtered.map(r=>r.생산호기),...compFiltered.map(r=>r.생산호기)])].filter(Boolean).sort();
+      const allDefTypes = [...new Set([...filtered.map(r=>r.불량유형),...compFiltered.map(r=>r.불량유형)])].filter(Boolean).sort();
+
+      // 호기별 불량유형 비교 테이블
+      const mainLineData = {};
+      filtered.forEach(r=>{const l=r.생산호기;if(!l)return;if(!mainLineData[l])mainLineData[l]={};mainLineData[l][r.불량유형]=(mainLineData[l][r.불량유형]||0)+1;});
+      const compLineData = {};
+      compFiltered.forEach(r=>{const l=r.생산호기;if(!l)return;if(!compLineData[l])compLineData[l]={};compLineData[l][r.불량유형]=(compLineData[l][r.불량유형]||0)+1;});
+
+      compareHtml = `
+        <div style="font-size:18px;font-weight:800;color:#1E293B;margin:28px 0 16px;padding-bottom:8px;border-bottom:2px solid #9333EA">
+          🔄 연도별 비교 분석 (${monthLabel}) — ${compYear}년 vs ${mainYear}년
+        </div>
+        <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;overflow:hidden;margin-bottom:16px">
+          <div style="padding:14px 16px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;font-size:14px;font-weight:700;color:#1E293B">🏭 호기별 불량유형 비교 (${compYear}년 vs ${mainYear}년)</div>
+          <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead>
+            <tr style="background:#F8FAFC">
+              <th rowspan="2" style="padding:6px 10px;text-align:left;font-weight:700;color:#64748B;border-bottom:1px solid #E2E8F0;position:sticky;left:0;background:#F8FAFC;vertical-align:middle">호기</th>
+              ${allDefTypes.map(t=>`<th colspan="2" style="padding:4px 6px;text-align:center;font-weight:700;color:#1E293B;border-bottom:1px solid #E2E8F0;font-size:11px">${esc(t)}</th>`).join('')}
+              <th colspan="2" style="padding:4px 6px;text-align:center;font-weight:700;color:#1E293B;border-bottom:1px solid #E2E8F0">합계</th>
+            </tr>
+            <tr style="background:#F8FAFC">
+              ${allDefTypes.map(()=>`<th style="padding:3px 6px;text-align:center;font-size:10px;color:#3B82F6;border-bottom:1px solid #E2E8F0">${compYear}</th><th style="padding:3px 6px;text-align:center;font-size:10px;color:#EF4444;border-bottom:1px solid #E2E8F0">${mainYear}</th>`).join('')}
+              <th style="padding:3px 6px;text-align:center;font-size:10px;color:#3B82F6;border-bottom:1px solid #E2E8F0">${compYear}</th><th style="padding:3px 6px;text-align:center;font-size:10px;color:#EF4444;border-bottom:1px solid #E2E8F0">${mainYear}</th>
+            </tr>
+          </thead><tbody>
+            ${allLines.map(line=>{
+              const mTotal = Object.values(mainLineData[line]||{}).reduce((s,v)=>s+v,0);
+              const cTotal = Object.values(compLineData[line]||{}).reduce((s,v)=>s+v,0);
+              return `<tr style="border-bottom:1px solid #F1F5F9">
+                <td style="padding:6px 10px;font-weight:600;color:#1E293B;position:sticky;left:0;background:#fff">${esc(line)}</td>
+                ${allDefTypes.map(t=>{
+                  const cv = (compLineData[line]||{})[t]||0;
+                  const mv = (mainLineData[line]||{})[t]||0;
+                  return `<td style="padding:4px 6px;text-align:center;${cv?'font-weight:600;color:#3B82F6':'color:#CBD5E1'}">${cv||'-'}</td>
+                    <td style="padding:4px 6px;text-align:center;${mv?'font-weight:600;color:#EF4444':'color:#CBD5E1'}">${mv||'-'}</td>`;
+                }).join('')}
+                <td style="padding:4px 6px;text-align:center;font-weight:700;color:#3B82F6">${cTotal||'-'}</td>
+                <td style="padding:4px 6px;text-align:center;font-weight:700;color:#EF4444">${mTotal||'-'}</td>
+              </tr>`;
+            }).join('')}
+          </tbody></table></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:24px">
+          <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:20px">
+            <div style="font-size:14px;font-weight:700;color:#1E293B;margin-bottom:12px">호기별 불량 건수 비교 (${compYear} vs ${mainYear})</div>
+            <canvas id="chart-compare-line" height="300"></canvas>
+          </div>
+          <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:20px">
+            <div style="font-size:14px;font-weight:700;color:#1E293B;margin-bottom:12px">불량유형별 건수 비교 (${compYear} vs ${mainYear})</div>
+            <canvas id="chart-compare-type" height="300"></canvas>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  $('analytics-result').innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-sm ${analyticsMonth.length===0?'btn-primary':'btn-secondary'}" onclick="analyticsMonth=[];renderAnalyticsResult()">전체</button>
+        ${months.map(m=>`<span style="display:inline-flex;align-items:center;cursor:pointer;padding:6px 12px;border-radius:6px;font-size:13px;font-weight:600;border:1px solid ${analyticsMonth.includes(m)?'#3B82F6':'#CBD5E1'};background:${analyticsMonth.includes(m)?'#EFF6FF':'#fff'};color:${analyticsMonth.includes(m)?'#1E40AF':'#64748B'};transition:all 0.15s;user-select:none" onclick="toggleMonth(${m})">${m}월</span>`).join('')}
+      </div>
+      ${analyticsCompare?`<button class="btn btn-sm btn-danger" onclick="analyticsCompare=null;renderAnalyticsResult()">비교 데이터 제거</button>`:''}
+      <div style="flex:1"></div>
+      <div style="font-size:13px;color:#64748B">총 <strong style="color:#1E293B;font-size:16px">${total}</strong>건 (${monthLabel})</div>
+      <button class="btn btn-primary" onclick="downloadAnalyticsExcel()">📥 엑셀 다운로드</button>
+      <button class="btn btn-primary" style="background:#0D9488" onclick="downloadChartExcel()">📊 차트포함 엑셀</button>
+    </div>
+
+    <div style="font-size:18px;font-weight:800;color:#1E293B;margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid #1E40AF">
+      📊 ${monthLabel} 항목별 불량집계
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px;margin-bottom:24px">
+      ${pivotTableHtml('불량 유형별 집계', byType, '🏷️')}
+      ${pivotTableHtml('호기별 불량 집계', byLine, '🏭')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px;margin-bottom:24px">
+      ${pivotTableHtml('업체별 불량 집계', byCompany, '🏢')}
+      ${pivotTableHtml('팀별 불량 건수 및 비율', byTeam, '👥')}
+    </div>
+
+    <div style="font-size:16px;font-weight:700;color:#1E293B;margin-bottom:12px">🏆 Worst 분석</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px;margin-bottom:24px">
+      ${crossTabHtml('Worst 불량 호기별 상세', lineTypes, '🏭')}
+      ${crossTabHtml('Worst 불량 업체별 상세', companyTypes, '🏢')}
+    </div>
+
+    <div style="font-size:16px;font-weight:700;color:#1E293B;margin-bottom:12px">📈 도식화</div>
+
+    <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:20px;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:700;color:#1E293B;margin-bottom:4px">호기별 불량유형 현황 (${monthLabel} / 총 ${total}건)</div>
+      <div style="font-size:11px;color:#94A3B8;margin-bottom:12px">※ 호기별 불량유형을 스택형으로 표시</div>
+      <canvas id="chart-stacked" height="350"></canvas>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px;margin-bottom:24px">
+      <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:20px">
+        <div style="font-size:14px;font-weight:700;color:#1E293B;margin-bottom:12px">불량 유형별 분포</div>
+        <canvas id="chart-type" height="320"></canvas>
+      </div>
+      <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:20px">
+        <div style="font-size:14px;font-weight:700;color:#1E293B;margin-bottom:12px">호기별 불량 건수</div>
+        <canvas id="chart-line" height="320"></canvas>
+      </div>
+      <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:20px">
+        <div style="font-size:14px;font-weight:700;color:#1E293B;margin-bottom:12px">업체별 불량 건수 (상위 10)</div>
+        <canvas id="chart-company" height="320"></canvas>
+      </div>
+      <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:20px">
+        <div style="font-size:14px;font-weight:700;color:#1E293B;margin-bottom:12px">팀별 불량 비율</div>
+        <canvas id="chart-team" height="320"></canvas>
+      </div>
+    </div>
+
+    <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:20px;margin-bottom:24px">
+      <div style="font-size:14px;font-weight:700;color:#1E293B;margin-bottom:12px">👥 팀별 불량유형 상세 분석</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
+        ${byTeam.map(d=>{const tn=(d.name||'미분류');return `<button class="btn btn-sm btn-secondary" onclick="renderTeamChart('${tn}')" style="font-weight:600">${tn}팀 (${d.count}건)</button>`}).join('')}
+      </div>
+      <div id="team-detail-area" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+          <div>
+            <div id="team-detail-title" style="font-size:13px;font-weight:700;color:#1E293B;margin-bottom:8px"></div>
+            <canvas id="chart-team-detail" height="300"></canvas>
+          </div>
+          <div>
+            <div id="team-detail-table"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    ${compareHtml}
+  `;
+
+  // 차트 렌더링
+  setTimeout(()=>{
+    // ★ 호기별 불량유형 스택형 막대 차트
+    const stackLines = byLine.map(d=>d.name);
+    const stackTypes = byType.map(d=>d.name);
+    const stackLabelPlugin = {
+      id:'stackedLabels',
+      afterDatasetsDraw(chart) {
+        const ctx = chart.ctx;
+        chart.data.datasets.forEach((ds, di) => {
+          const meta = chart.getDatasetMeta(di);
+          meta.data.forEach((el, i) => {
+            const val = ds.data[i];
+            if (!val || val === 0) return;
+            ctx.save();
+            const barH = el.height || (el.base - el.y);
+            const fontSize = Math.max(8, Math.min(11, barH * 0.35));
+            if (barH < 16) { ctx.restore(); return; }
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const cy = (el.y + el.base) / 2;
+            if (barH >= 28) {
+              ctx.font = `bold ${fontSize}px Pretendard, sans-serif`;
+              ctx.fillText(ds.label, el.x, cy - fontSize * 0.55);
+              ctx.font = `${Math.max(7,fontSize-1)}px Pretendard, sans-serif`;
+              ctx.fillText(val + '건', el.x, cy + fontSize * 0.55);
+            } else {
+              ctx.font = `bold ${fontSize}px Pretendard, sans-serif`;
+              ctx.fillText(ds.label + ' ' + val, el.x, cy);
+            }
+            ctx.restore();
+          });
+        });
+      }
+    };
+    new Chart($('chart-stacked'), {
+      type:'bar',
+      data:{
+        labels: stackLines,
+        datasets: stackTypes.map((type, ti) => ({
+          label: type,
+          data: stackLines.map(line => (lineTypes[line]||{})[type]||0),
+          backgroundColor: CHART_COLORS[ti % CHART_COLORS.length],
+          borderWidth: 0,
+          barPercentage: 0.7,
+          categoryPercentage: 0.85,
+        }))
+      },
+      options:{
+        responsive:true,
+        scales:{
+          x:{stacked:true, grid:{display:false}, ticks:{font:{size:11,family:'Pretendard',weight:'bold'}}},
+          y:{stacked:true, grid:{color:'#F1F5F9'}, beginAtZero:true, ticks:{stepSize:1}}
+        },
+        plugins:{
+          legend:{position:'bottom',labels:{font:{size:11,family:'Pretendard'},padding:10,usePointStyle:true,pointStyleWidth:12}},
+          tooltip:{mode:'index',intersect:false,callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.raw+'건'}}
+        }
+      },
+      plugins:[stackLabelPlugin]
+    });
+
+    // 불량 유형별 도넛
+    new Chart($('chart-type'), {
+      type:'doughnut',
+      data:{ labels:byType.map(d=>d.name), datasets:[{data:byType.map(d=>d.count),backgroundColor:CHART_COLORS.slice(0,byType.length),borderWidth:2,borderColor:'#fff'}] },
+      options:{responsive:true,plugins:{legend:{position:'right',labels:{font:{size:11,family:'Pretendard'},padding:6,usePointStyle:true,pointStyleWidth:10,generateLabels:chart=>{const ds=chart.data.datasets[0];const total=ds.data.reduce((s,v)=>s+v,0);return chart.data.labels.map((l,i)=>({text:l+' '+ds.data[i]+'건 ('+(ds.data[i]/total*100).toFixed(1)+'%)',fillStyle:ds.backgroundColor[i],strokeStyle:ds.backgroundColor[i],index:i}))}}}}},
+      plugins:[dataLabelPlugin]
+    });
+
+    // 호기별 수평 막대
+    new Chart($('chart-line'), {
+      type:'bar',
+      data:{ labels:byLine.map(d=>d.name), datasets:[{label:'건수',data:byLine.map(d=>d.count),backgroundColor:CHART_COLORS.slice(0,byLine.length),borderRadius:6,barPercentage:0.7}] },
+      options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{display:false}}}},
+      plugins:[dataLabelPlugin]
+    });
+
+    // 업체별 막대(상위10)
+    const topComp = byCompany.slice(0,10);
+    new Chart($('chart-company'), {
+      type:'bar',
+      data:{ labels:topComp.map(d=>d.name), datasets:[{label:'건수',data:topComp.map(d=>d.count),backgroundColor:'#3B82F6',borderRadius:6,barPercentage:0.6}] },
+      options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:45,font:{size:10}},grid:{display:false}},y:{grid:{color:'#F1F5F9'}}}},
+      plugins:[dataLabelPlugin]
+    });
+
+    // 팀별 파이
+    new Chart($('chart-team'), {
+      type:'pie',
+      data:{ labels:byTeam.map(d=>(d.name||'미분류')+'팀'), datasets:[{data:byTeam.map(d=>d.count),backgroundColor:CHART_COLORS.slice(0,byTeam.length),borderWidth:2,borderColor:'#fff'}] },
+      options:{responsive:true,plugins:{legend:{position:'right',labels:{font:{size:11,family:'Pretendard'},padding:6,usePointStyle:true,pointStyleWidth:10,generateLabels:chart=>{const ds=chart.data.datasets[0];const total=ds.data.reduce((s,v)=>s+v,0);return chart.data.labels.map((l,i)=>({text:l+' '+ds.data[i]+'건 ('+(ds.data[i]/total*100).toFixed(1)+'%)',fillStyle:ds.backgroundColor[i],strokeStyle:ds.backgroundColor[i],index:i}))}}}}},
+      plugins:[dataLabelPlugin]
+    });
+
+    // 비교 차트
+    if (analyticsCompare && $('chart-compare-line')) {
+      const compFiltered = analyticsMonth.length === 0 ? analyticsCompare : analyticsCompare.filter(r => analyticsMonth.includes(r._month));
+      const mainYear = [...new Set(filtered.map(r=>r._year))].sort().join('/');
+      const compYear = [...new Set(compFiltered.map(r=>r._year))].sort().join('/');
+      const allLines = [...new Set([...filtered.map(r=>r.생산호기),...compFiltered.map(r=>r.생산호기)])].filter(Boolean).sort();
+      const mainByLine = {};
+      filtered.forEach(r=>{if(r.생산호기)mainByLine[r.생산호기]=(mainByLine[r.생산호기]||0)+1;});
+      const compByLine = {};
+      compFiltered.forEach(r=>{if(r.생산호기)compByLine[r.생산호기]=(compByLine[r.생산호기]||0)+1;});
+
+      new Chart($('chart-compare-line'), {
+        type:'bar',
+        data:{ labels:allLines, datasets:[
+          {label:compYear+'년',data:allLines.map(l=>compByLine[l]||0),backgroundColor:'#93C5FD',borderRadius:4,barPercentage:0.4,categoryPercentage:0.8},
+          {label:mainYear+'년',data:allLines.map(l=>mainByLine[l]||0),backgroundColor:'#3B82F6',borderRadius:4,barPercentage:0.4,categoryPercentage:0.8},
+        ]},
+        options:{responsive:true,plugins:{legend:{position:'top',labels:{font:{size:12,family:'Pretendard'}}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#F1F5F9'}}}},
+        plugins:[dataLabelPlugin]
+      });
+
+      // 불량유형별 비교
+      const allDefTypes = [...new Set([...filtered.map(r=>r.불량유형),...compFiltered.map(r=>r.불량유형)])].filter(Boolean).sort();
+      const mainByType = {};
+      filtered.forEach(r=>{if(r.불량유형)mainByType[r.불량유형]=(mainByType[r.불량유형]||0)+1;});
+      const compByType = {};
+      compFiltered.forEach(r=>{if(r.불량유형)compByType[r.불량유형]=(compByType[r.불량유형]||0)+1;});
+
+      new Chart($('chart-compare-type'), {
+        type:'bar',
+        data:{ labels:allDefTypes, datasets:[
+          {label:compYear+'년',data:allDefTypes.map(t=>compByType[t]||0),backgroundColor:'#FCA5A5',borderRadius:4,barPercentage:0.4,categoryPercentage:0.8},
+          {label:mainYear+'년',data:allDefTypes.map(t=>mainByType[t]||0),backgroundColor:'#EF4444',borderRadius:4,barPercentage:0.4,categoryPercentage:0.8},
+        ]},
+        options:{responsive:true,plugins:{legend:{position:'top',labels:{font:{size:12,family:'Pretendard'}}}},scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{grid:{color:'#F1F5F9'}}}},
+        plugins:[dataLabelPlugin]
+      });
+    }
+  }, 100);
+}
+
+function downloadAnalyticsExcel() {
+  if (!analyticsData) return alert('먼저 엑셀 파일을 업로드하세요.');
+  const filtered = analyticsMonth.length === 0 ? analyticsData : analyticsData.filter(r => analyticsMonth.includes(r._month));
+  const total = filtered.length;
+  const monthLabel = analyticsMonth.length === 0 ? '전체' : analyticsMonth.map(m=>m+'월').join('+');
+  const wb = XLSX.utils.book_new();
+
+  // 스타일 정의
+  const titleStyle = {font:{bold:true,sz:14,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'1E40AF'}},alignment:{horizontal:'center',vertical:'center'},border:{top:{style:'thin',color:{rgb:'000000'}},bottom:{style:'thin',color:{rgb:'000000'}},left:{style:'thin',color:{rgb:'000000'}},right:{style:'thin',color:{rgb:'000000'}}}};
+  const headerStyle = {font:{bold:true,sz:11,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'334155'}},alignment:{horizontal:'center',vertical:'center'},border:{top:{style:'thin',color:{rgb:'94A3B8'}},bottom:{style:'thin',color:{rgb:'94A3B8'}},left:{style:'thin',color:{rgb:'94A3B8'}},right:{style:'thin',color:{rgb:'94A3B8'}}}};
+  const dataStyle = {font:{sz:10},alignment:{horizontal:'center',vertical:'center'},border:{top:{style:'thin',color:{rgb:'E2E8F0'}},bottom:{style:'thin',color:{rgb:'E2E8F0'}},left:{style:'thin',color:{rgb:'E2E8F0'}},right:{style:'thin',color:{rgb:'E2E8F0'}}}};
+  const dataLeftStyle = {...dataStyle,alignment:{horizontal:'left',vertical:'center'}};
+  const dataBoldStyle = {font:{bold:true,sz:10},alignment:{horizontal:'center',vertical:'center'},border:dataStyle.border};
+  const totalRowStyle = {font:{bold:true,sz:11,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'1E40AF'}},alignment:{horizontal:'center',vertical:'center'},border:{top:{style:'thin',color:{rgb:'000000'}},bottom:{style:'thin',color:{rgb:'000000'}},left:{style:'thin',color:{rgb:'000000'}},right:{style:'thin',color:{rgb:'000000'}}}};
+  const pctStyle = {font:{sz:10},alignment:{horizontal:'center',vertical:'center'},border:dataStyle.border,numFmt:'0.0"%"'};
+  const evenRowFill = {fill:{fgColor:{rgb:'F8FAFC'}}};
+
+  function styledPivotSheet(title, data, col1Name) {
+    const aoa = [[`📊 ${monthLabel} ${title}`,'',''],['','',' '],[col1Name,'건수','비율(%)']];
+    data.forEach(d => aoa.push([d.name, d.count, parseFloat(d.rate)]));
+    aoa.push(['합계', total, 100.0]);
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!merges'] = [{s:{r:0,c:0},e:{r:0,c:2}}];
+    ws['!cols'] = [{wch:20},{wch:12},{wch:12}];
+    // 타이틀 행
+    for(let c=0;c<3;c++){const addr=XLSX.utils.encode_cell({r:0,c});if(ws[addr])ws[addr].s=titleStyle;}
+    // 헤더 행
+    for(let c=0;c<3;c++){const addr=XLSX.utils.encode_cell({r:2,c});if(ws[addr])ws[addr].s=headerStyle;}
+    // 데이터 행
+    for(let r=3;r<3+data.length;r++){
+      const isEven=(r-3)%2===0;
+      for(let c=0;c<3;c++){
+        const addr=XLSX.utils.encode_cell({r,c});
+        if(!ws[addr])continue;
+        if(c===0)ws[addr].s={...dataLeftStyle,...(isEven?evenRowFill:{})};
+        else if(c===2)ws[addr].s={...pctStyle,...(isEven?evenRowFill:{})};
+        else ws[addr].s={...dataBoldStyle,...(isEven?evenRowFill:{})};
+      }
+    }
+    // 합계 행
+    const tr=3+data.length;
+    for(let c=0;c<3;c++){const addr=XLSX.utils.encode_cell({r:tr,c});if(ws[addr])ws[addr].s=totalRowStyle;}
+    return ws;
+  }
+
+  function styledCrossSheet(title, crossData, col1Name) {
+    const allTypes = [...new Set(filtered.map(r=>r.불량유형))].sort();
+    const entries = Object.entries(crossData).sort((a,b)=>Object.values(b[1]).reduce((s,v)=>s+v,0)-Object.values(a[1]).reduce((s,v)=>s+v,0));
+    const aoa = [[`📊 ${monthLabel} ${title}`,...Array(allTypes.length+1).fill('')],['',...Array(allTypes.length+1).fill('')],[col1Name,...allTypes,'합계']];
+    entries.forEach(([n,t])=>{const row=[n,...allTypes.map(x=>t[x]||0)];row.push(Object.values(t).reduce((s,v)=>s+v,0));aoa.push(row);});
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!merges'] = [{s:{r:0,c:0},e:{r:0,c:allTypes.length+1}}];
+    ws['!cols'] = [{wch:16},...allTypes.map(()=>({wch:10})),{wch:10}];
+    for(let c=0;c<allTypes.length+2;c++){const a1=XLSX.utils.encode_cell({r:0,c});if(ws[a1])ws[a1].s=titleStyle;const a2=XLSX.utils.encode_cell({r:2,c});if(ws[a2])ws[a2].s=headerStyle;}
+    for(let r=3;r<3+entries.length;r++){
+      const isEven=(r-3)%2===0;
+      for(let c=0;c<allTypes.length+2;c++){
+        const addr=XLSX.utils.encode_cell({r,c});
+        if(!ws[addr])continue;
+        if(c===0)ws[addr].s={...dataLeftStyle,...(isEven?evenRowFill:{})};
+        else if(c===allTypes.length+1)ws[addr].s={...dataBoldStyle,font:{bold:true,sz:10,color:{rgb:'1E40AF'}},...(isEven?evenRowFill:{})};
+        else{const v=ws[addr].v;ws[addr].s={...(v&&v>0?dataBoldStyle:dataStyle),...(isEven?evenRowFill:{})};}
+      }
+    }
+    return ws;
+  }
+
+  const byType = pivot(filtered,'불량유형');
+  XLSX.utils.book_append_sheet(wb, styledPivotSheet('불량 유형별 집계',byType,'불량유형'), '불량유형별');
+  const byLine = pivot(filtered,'생산호기');
+  XLSX.utils.book_append_sheet(wb, styledPivotSheet('호기별 불량 집계',byLine,'호기'), '호기별');
+  const byComp = pivot(filtered,'업체');
+  XLSX.utils.book_append_sheet(wb, styledPivotSheet('업체별 불량 집계',byComp,'업체'), '업체별');
+  const byTeam = pivot(filtered,'팀');
+  XLSX.utils.book_append_sheet(wb, styledPivotSheet('팀별 불량 건수 및 비율',byTeam.map(d=>({...d,name:d.name||'미분류'})),'팀'), '팀별');
+
+  const allTypes = [...new Set(filtered.map(r=>r.불량유형))].sort();
+  const lineTypes = {};
+  filtered.forEach(r=>{const l=r.생산호기||'미분류';if(!lineTypes[l])lineTypes[l]={};lineTypes[l][r.불량유형||'미분류']=(lineTypes[l][r.불량유형||'미분류']||0)+1;});
+  XLSX.utils.book_append_sheet(wb, styledCrossSheet('Worst 호기별 불량유형 상세',lineTypes,'호기'), 'Worst호기별');
+
+  const compTypes = {};
+  filtered.forEach(r=>{const c=r.업체||'미분류';if(!compTypes[c])compTypes[c]={};compTypes[c][r.불량유형||'미분류']=(compTypes[c][r.불량유형||'미분류']||0)+1;});
+  XLSX.utils.book_append_sheet(wb, styledCrossSheet('Worst 업체별 불량유형 상세',compTypes,'업체'), 'Worst업체별');
+
+  if (analyticsCompare) {
+    const compFiltered = analyticsMonth.length === 0 ? analyticsCompare : analyticsCompare.filter(r => analyticsMonth.includes(r._month));
+    if (compFiltered.length > 0) {
+      const mainYear = [...new Set(filtered.map(r=>r._year))].sort().join('/');
+      const compYear = [...new Set(compFiltered.map(r=>r._year))].sort().join('/');
+      const allLines = [...new Set([...filtered.map(r=>r.생산호기),...compFiltered.map(r=>r.생산호기)])].filter(Boolean).sort();
+      const allDT = [...new Set([...filtered.map(r=>r.불량유형),...compFiltered.map(r=>r.불량유형)])].filter(Boolean).sort();
+      const hdr1 = ['호기'];
+      const hdr2 = [''];
+      allDT.forEach(t=>{hdr1.push(t,'');hdr2.push(compYear+'년',mainYear+'년');});
+      hdr1.push('합계','');hdr2.push(compYear+'년',mainYear+'년');
+      const aoa = [[`🔄 ${monthLabel} 연도별 비교 (${compYear} vs ${mainYear})`,...Array(allDT.length*2+2).fill('')],[''],hdr1,hdr2];
+      const mLD={},cLD={};
+      filtered.forEach(r=>{const l=r.생산호기;if(!l)return;if(!mLD[l])mLD[l]={};mLD[l][r.불량유형]=(mLD[l][r.불량유형]||0)+1;});
+      compFiltered.forEach(r=>{const l=r.생산호기;if(!l)return;if(!cLD[l])cLD[l]={};cLD[l][r.불량유형]=(cLD[l][r.불량유형]||0)+1;});
+      allLines.forEach(l=>{
+        const row=[l];
+        allDT.forEach(t=>{row.push((cLD[l]||{})[t]||0);row.push((mLD[l]||{})[t]||0);});
+        row.push(Object.values(cLD[l]||{}).reduce((s,v)=>s+v,0));
+        row.push(Object.values(mLD[l]||{}).reduce((s,v)=>s+v,0));
+        aoa.push(row);
+      });
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      const totalCols = allDT.length*2+3;
+      ws['!merges'] = [{s:{r:0,c:0},e:{r:0,c:totalCols-1}}];
+      // 불량유형별 병합
+      for(let i=0;i<allDT.length;i++){ws['!merges'].push({s:{r:2,c:1+i*2},e:{r:2,c:2+i*2}});}
+      ws['!merges'].push({s:{r:2,c:1+allDT.length*2},e:{r:2,c:2+allDT.length*2}});
+      ws['!cols'] = [{wch:12},...Array(totalCols-1).fill({wch:10})];
+      // 스타일 적용
+      for(let c=0;c<totalCols;c++){const a=XLSX.utils.encode_cell({r:0,c});if(ws[a])ws[a].s=titleStyle;}
+      for(let c=0;c<totalCols;c++){const a=XLSX.utils.encode_cell({r:2,c});if(ws[a])ws[a].s=headerStyle;}
+      for(let c=0;c<totalCols;c++){const a=XLSX.utils.encode_cell({r:3,c});if(ws[a])ws[a].s={...headerStyle,fill:{fgColor:{rgb:'475569'}}};}
+      for(let r=4;r<4+allLines.length;r++){
+        const isEven=(r-4)%2===0;
+        for(let c=0;c<totalCols;c++){
+          const addr=XLSX.utils.encode_cell({r,c});
+          if(!ws[addr])continue;
+          if(c===0)ws[addr].s={...dataLeftStyle,...(isEven?evenRowFill:{})};
+          else{const v=ws[addr].v;ws[addr].s={...(v&&v>0?dataBoldStyle:dataStyle),...(isEven?evenRowFill:{})};}
+        }
+      }
+      XLSX.utils.book_append_sheet(wb, ws, '연도비교_호기별');
+    }
+  }
+
+  XLSX.writeFile(wb, `불량집계_${monthLabel}_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+async function downloadChartExcel() {
+  if (!analyticsData) return alert('먼저 엑셀 파일을 업로드하세요.');
+  const filtered = analyticsMonth.length === 0 ? analyticsData : analyticsData.filter(r => analyticsMonth.includes(r._month));
+  const total = filtered.length;
+  const monthLabel = analyticsMonth.length === 0 ? '전체' : analyticsMonth.map(m=>m+'월').join('+');
+  const byType = pivot(filtered,'불량유형');
+  const byLine = pivot(filtered,'생산호기');
+  const byCompany = pivot(filtered,'업체');
+  const byTeam = pivot(filtered,'팀');
+  const lineTypes = {};
+  filtered.forEach(r=>{const l=r.생산호기||'미분류';if(!lineTypes[l])lineTypes[l]={};lineTypes[l][r.불량유형||'미분류']=(lineTypes[l][r.불량유형||'미분류']||0)+1;});
+
+  try {
+    const resp = await fetch('/api/analytics/excel-chart', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({monthLabel, total, byType, byLine, byCompany, byTeam, lineTypes})
+    });
+    if (!resp.ok) { const err = await resp.json(); alert('오류: '+(err.error||'서버 에러')); return; }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `불량집계_${monthLabel}_${new Date().toISOString().slice(0,10)}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) { alert('차트 포함 엑셀은 서버(PythonAnywhere)에서만 지원됩니다.\n로컬 EXE에서는 일반 엑셀 다운로드를 사용하세요.'); }
+}
+
+// ─── Delete ─────────────────────────
+async function deleteItem(t,id) { if(!confirm('삭제하시겠습니까?')) return; await api.remove(t,id); await refresh(); }
+
+// ─── Refresh ─────────────────────────
+async function refresh() { await loadAll(); renderTabs(); renderContent(); }
+
+// ─── Init ─────────────────────────
+(async function() { await loadAll(); renderTabs(); renderContent(); })();
+</script>
+</body>
+</html>
