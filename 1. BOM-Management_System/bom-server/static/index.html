@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BOM 배합 관리 시스템</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0e16;--surface:#131620;--surface2:#1a1e2e;--surface3:#222840;
+  --border:#252a3d;--border2:#2e3450;
+  --text:#e4e8f5;--text2:#8892aa;--text3:#555f78;
+  --blue:#4f8cff;--green:#34d399;--amber:#f59e0b;--pink:#ec4899;--purple:#a78bfa;--red:#ef4444;--cyan:#22d3ee;
+  --blue-dim:#4f8cff18;--green-dim:#34d39918;--amber-dim:#f59e0b18;--pink-dim:#ec489918;--purple-dim:#a78bfa18;
+  --radius:12px;--radius-sm:8px;--radius-xs:6px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Pretendard','Malgun Gothic',sans-serif;min-height:100vh;font-size:13px;line-height:1.5}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* Layout */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto}
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+
+/* Sidebar */
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid var(--border)}
+.sidebar-logo-title{font-size:14px;font-weight:800;color:#fff;letter-spacing:-.3px;line-height:1.2}
+.sidebar-logo-sub{font-size:10px;color:var(--text3);margin-top:3px}
+.sidebar-section{padding:12px 10px 4px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:var(--radius-sm);margin:2px 6px;cursor:pointer;color:var(--text2);font-size:12.5px;font-weight:600;transition:all .15s;border:none;background:transparent;width:calc(100% - 12px);text-align:left}
+.nav-item:hover{background:var(--surface3);color:var(--text)}
+.nav-item.active{background:linear-gradient(135deg,#4f8cff18,#4f8cff08);color:var(--blue);border:1px solid #4f8cff22}
+.nav-item .nav-icon{font-size:14px;width:20px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--surface3);color:var(--text3);font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px}
+.nav-item.active .nav-badge{background:var(--blue-dim);color:var(--blue)}
+
+/* Machine filter */
+.machine-filter{padding:8px 6px;border-top:1px solid var(--border);margin-top:auto}
+.machine-filter-title{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.5px;padding:0 6px 6px;text-transform:uppercase}
+.machine-chip{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--radius-xs);margin-bottom:2px;cursor:pointer;font-size:11px;font-weight:600;color:var(--text2);transition:all .15s;border:1px solid transparent}
+.machine-chip:hover{background:var(--surface3);color:var(--text)}
+.machine-chip.active{background:var(--blue-dim);color:var(--blue);border-color:#4f8cff22}
+.machine-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* Top bar */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:12px;height:56px;flex-shrink:0;position:sticky;top:0;z-index:100}
+.topbar-title{font-size:15px;font-weight:800;color:#fff;flex:1}
+.topbar-stat{display:flex;flex-direction:column;align-items:center;padding:6px 12px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border)}
+.topbar-stat-val{font-size:16px;font-weight:800;line-height:1}
+.topbar-stat-label{font-size:10px;color:var(--text3);margin-top:2px;font-weight:600}
+
+/* Buttons */
+.btn{padding:7px 14px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{background:var(--surface3);border-color:var(--blue);color:var(--text)}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-primary:hover{background:#3b7bef;border-color:#3b7bef}
+.btn-success{background:var(--green);color:#0c0e16;border-color:var(--green);font-weight:700}
+.btn-success:hover{background:#2dbc8a}
+.btn-danger{color:var(--red);border-color:#ef444422}.btn-danger:hover{background:#ef444415}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:var(--radius-xs)}
+.btn-xs{padding:3px 8px;font-size:10px;border-radius:5px}
+.btn-ghost{border-color:transparent;background:transparent}
+.btn-ghost:hover{background:var(--surface3)}
+
+/* Input */
+.input{width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:12.5px;outline:none;font-family:inherit;transition:border .15s}
+.input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #4f8cff12}
+.input::placeholder{color:var(--text3)}
+.input-sm{padding:6px 10px;font-size:12px}
+.input-xs{padding:4px 8px;font-size:11px}
+select.input option{background:var(--surface2)}
+
+/* Content */
+.content{flex:1;overflow-y:auto;padding:24px}
+.content-inner{max-width:1400px;margin:0 auto}
+
+/* Search bar */
+.search-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px}
+.search-input-wrap{flex:1;min-width:200px;position:relative}
+.search-input-wrap::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none}
+.search-input-wrap .input{padding-left:32px}
+.filter-group{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.filter-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;font-family:inherit}
+.filter-btn:hover{border-color:var(--blue);color:var(--text)}
+.filter-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.filter-btn.active-green{background:var(--green);color:#0c0e16;border-color:var(--green)}
+.filter-btn.active-amber{background:var(--amber);color:#0c0e16;border-color:var(--amber)}
+
+/* Count label */
+.count-label{font-size:11px;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.count-label strong{color:var(--text2)}
+
+/* Grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+
+/* Cards */
+.card{padding:16px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--border),transparent);transition:all .2s}
+.card:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.card:hover::before{background:linear-gradient(90deg,transparent,var(--blue),transparent)}
+.card-title{font-size:13px;font-weight:700;color:#fff;line-height:1.3}
+.card-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
+.badge-blue{color:var(--blue);background:var(--blue-dim);border:1px solid #4f8cff22}
+.badge-green{color:var(--green);background:var(--green-dim);border:1px solid #34d39922}
+.badge-amber{color:var(--amber);background:var(--amber-dim);border:1px solid #f59e0b22}
+.badge-pink{color:var(--pink);background:var(--pink-dim);border:1px solid #ec489922}
+.badge-purple{color:var(--purple);background:var(--purple-dim);border:1px solid #a78bfa22}
+.badge-cyan{color:var(--cyan);background:#22d3ee18;border:1px solid #22d3ee22}
+.badge-gray{color:var(--text2);background:var(--surface3);border:1px solid var(--border2)}
+.card-footer{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:auto;padding-top:4px}
+.layer-bar{display:flex;height:4px;border-radius:2px;overflow:hidden;width:100%}
+.layer-seg-full{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+
+/* Machine group tags */
+.machine-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:12px;font-size:10px;font-weight:700}
+
+/* Company section */
+.company-block{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:12px}
+.company-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background .15s}
+.company-header:hover{background:var(--surface2)}
+.company-header-left{display:flex;align-items:center;gap:10px}
+.company-name{font-size:14px;font-weight:800;color:#fff}
+.company-body{padding:12px 18px;display:flex;flex-wrap:wrap;gap:8px}
+.product-chip{padding:8px 14px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface2);cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .15s;font-family:inherit;font-size:12px;font-weight:600;color:var(--text)}
+.product-chip:hover{background:var(--surface3);border-color:var(--blue)}
+
+/* Table */
+.table-wrap{overflow-x:auto;border-radius:var(--radius-sm);border:1px solid var(--border)}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
+thead th{padding:9px 12px;color:var(--text3);font-weight:700;font-size:10px;border-bottom:1px solid var(--border2);white-space:nowrap;background:var(--surface2);user-select:none;cursor:pointer;letter-spacing:.3px;text-transform:uppercase}
+thead th:first-child{border-radius:var(--radius-sm) 0 0 0}
+thead th:last-child{border-radius:0 var(--radius-sm) 0 0}
+thead th:hover{color:var(--blue)}
+tbody td{padding:8px 12px;border-bottom:1px solid rgba(37,42,61,.6)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(79,140,255,.04)}
+tbody tr.highlight{background:rgba(79,140,255,.08)}
+
+/* Modal */
+@keyframes overlayFade{from{opacity:0}to{opacity:1}}
+@keyframes modalSlide{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);display:flex;align-items:flex-start;justify-content:center;padding:32px 16px;overflow-y:auto;animation:overlayFade .2s}
+.modal{background:var(--surface);border-radius:16px;max-width:960px;width:100%;border:1px solid var(--border2);box-shadow:0 24px 80px rgba(0,0,0,.6);animation:modalSlide .25s ease}
+.modal-header{padding:22px 28px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.modal-title{font-size:20px;font-weight:800;color:#fff;letter-spacing:-.3px;line-height:1.2}
+.modal-body{padding:22px 28px;max-height:calc(100vh - 200px);overflow-y:auto}
+.modal-footer{padding:16px 28px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+
+/* Form */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.form-item{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:11px;color:var(--text3);font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+
+/* Divider */
+.section-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;margin-top:4px;display:flex;align-items:center;gap:7px}
+.section-title::before{content:'';display:block;width:3px;height:13px;background:var(--blue);border-radius:2px}
+.section-title.green::before{background:var(--green)}
+.section-title.amber::before{background:var(--amber)}
+.section-title.purple::before{background:var(--purple)}
+
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px}
+.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px}
+.stat-val{font-size:22px;font-weight:800;line-height:1;margin-bottom:4px}
+.stat-label{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.3px;text-transform:uppercase}
+
+/* Layer viz */
+.layer-viz{display:flex;height:32px;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border)}
+
+/* Toast */
+@keyframes toastIn{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:var(--radius);background:var(--surface2);border:1px solid var(--green);color:var(--green);font-size:13px;font-weight:600;z-index:2000;animation:toastIn .3s;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.toast.error{border-color:var(--red);color:var(--red)}
+
+/* Refresh btn */
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.refresh-btn{position:fixed;bottom:24px;left:240px;width:44px;height:44px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);font-size:18px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.4);z-index:999;transition:all .3s;display:flex;align-items:center;justify-content:center}
+.refresh-btn:hover{background:var(--blue);border-color:var(--blue);color:#fff;transform:rotate(180deg)}
+.refresh-btn.loading{animation:spin 1s linear infinite}
+
+/* Machine group colors */
+.mg-1{color:#4f8cff;background:#4f8cff18;border-color:#4f8cff22}
+.mg-2{color:#34d399;background:#34d39918;border-color:#34d39922}
+.mg-35{color:#f59e0b;background:#f59e0b18;border-color:#f59e0b22}
+.mg-3K{color:#22d3ee;background:#22d3ee18;border-color:#22d3ee22}
+.mg-3R{color:#a78bfa;background:#a78bfa18;border-color:#a78bfa22}
+.mg-5{color:#ec4899;background:#ec489918;border-color:#ec489922}
+
+/* Responsive */
+@media(max-width:768px){
+  .sidebar{display:none}
+  .refresh-btn{left:16px}
+  .content{padding:16px}
+  .grid{grid-template-columns:1fr}
+}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .25s ease both}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-title">BOM 배합<br>관리 시스템</div>
+      <div class="sidebar-logo-sub">플라스틱 필름 제조 · 실시간 공유</div>
+    </div>
+    <div class="sidebar-section">메뉴</div>
+    <button class="nav-item active" id="nav-products" onclick="switchTab('products')">
+      <span class="nav-icon">⚗️</span>배합 레시피
+      <span class="nav-badge" id="nb-products">-</span>
+    </button>
+    <button class="nav-item" id="nav-company" onclick="switchTab('company')">
+      <span class="nav-icon">🏭</span>업체별 BOM
+      <span class="nav-badge" id="nb-company">-</span>
+    </button>
+    <button class="nav-item" id="nav-materials" onclick="switchTab('materials')">
+      <span class="nav-icon">🧪</span>원재료 DB
+      <span class="nav-badge" id="nb-materials">-</span>
+    </button>
+    <button class="nav-item" id="nav-upload" onclick="showUploadModal()">
+      <span class="nav-icon">📁</span>엑셀 업로드
+    </button>
+
+    <div class="machine-filter">
+      <div class="machine-filter-title">호기 필터</div>
+      <div id="machineFilterList"></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">배합 레시피</div>
+      <div class="topbar-stat" style="border-color:#4f8cff22">
+        <div class="topbar-stat-val" style="color:var(--blue)" id="ts-products">-</div>
+        <div class="topbar-stat-label">레시피</div>
+      </div>
+      <div class="topbar-stat" style="border-color:#34d39922">
+        <div class="topbar-stat-val" style="color:var(--green)" id="ts-bom">-</div>
+        <div class="topbar-stat-label">업체/제품</div>
+      </div>
+      <div class="topbar-stat" style="border-color:#f59e0b22">
+        <div class="topbar-stat-val" style="color:var(--amber)" id="ts-materials">-</div>
+        <div class="topbar-stat-label">원재료</div>
+      </div>
+      <div class="topbar-stat" style="border-color:#a78bfa22">
+        <div class="topbar-stat-val" style="color:var(--purple)" id="ts-companies">-</div>
+        <div class="topbar-stat-label">거래처</div>
+      </div>
+    </div>
+    <div class="content" id="content">
+      <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3)">
+        데이터 로딩 중...
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="refresh-btn" id="refreshBtn" onclick="refreshData()" title="새로고침">↻</button>
+
+<script>
+const API = '/api';
+let DATA = null;
+let currentTab = 'products';
+let toastTimer = null;
+
+// State
+let prodSearch = '';
+let prodColor = 'all';
+let prodMachineGroup = 'all';
+let prodSort = 0;
+let companySearch = '';
+let companyMachineGroup = 'all';
+let matSearch = '';
+let matSortKey = 'name';
+let matSortDir = 1;
+
+// Machine group config
+const MG_CONFIG = {
+  '1레이어 (1,2호기)':     {key:'mg-1',  color:'#4f8cff', dot:'#4f8cff', short:'1레이어'},
+  '2레이어 (3,7호기)':     {key:'mg-2',  color:'#34d399', dot:'#34d399', short:'2레이어'},
+  '3레이어 (5호기)':       {key:'mg-35', color:'#f59e0b', dot:'#f59e0b', short:'3L(5호기)'},
+  '3레이어 국산 (4,6,8호기)':{key:'mg-3K',color:'#22d3ee', dot:'#22d3ee', short:'3L 국산'},
+  '3레이어 라이펜 (10,11호기)':{key:'mg-3R',color:'#a78bfa',dot:'#a78bfa', short:'3L 라이펜'},
+  '5레이어 (9호기)':       {key:'mg-5',  color:'#ec4899', dot:'#ec4899', short:'5레이어'},
+};
+
+const TYPE_COLORS = {
+  'LLDPE':'#4f8cff','LDPE':'#34d399','mLLDPE':'#f59e0b','HDPE':'#ef4444',
+  'POP':'#ec4899','POE':'#a78bfa','EVA계열':'#f59e0b','Affinity':'#ec4899',
+  'Elite':'#4f8cff','Evolue':'#34d399','M/B(유백)':'#94a3b8','AB':'#94a3b8',
+  'PPA':'#94a3b8','슬립제':'#22d3ee','대전제':'#22d3ee','재생원료':'#64748b',
+  'PCR':'#34d399','LLDPE 배합':'#4f8cff'
+};
+
+// ─── Helpers ───
+const fmt = (n,d=2) => { if(n==null||isNaN(n)||n===0) return d===0?'0':'-'; return Number(n).toLocaleString('ko-KR',{minimumFractionDigits:d,maximumFractionDigits:d}); };
+const pct = n => { if(!n) return '-'; return (n*100).toFixed(1)+'%'; };
+const esc = s => { const d=document.createElement('div');d.textContent=String(s||'');return d.innerHTML; };
+const mgCfg = (mg) => MG_CONFIG[mg] || {key:'',color:'#64748b',dot:'#64748b',short:mg||'?'};
+const mgBadge = (mg,short) => { if(!mg) return ''; const c=mgCfg(mg); return `<span class="badge ${c.key}" style="">${esc(short?c.short:mg)}</span>`; };
+
+function showToast(msg, isErr=false) {
+  let t = document.getElementById('_toast');
+  if(!t){t=document.createElement('div');t.id='_toast';t.className='toast';document.body.appendChild(t);}
+  t.textContent=msg; t.className='toast'+(isErr?' error':''); t.style.display='block';
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.style.display='none',2800);
+}
+
+// ─── API ───
+async function fetchData(silent) {
+  try {
+    const r = await fetch(API+'/data');
+    DATA = await r.json();
+    if(!silent) { updateTopStats(); buildMachineFilter(); render(); }
+    else { updateTopStats(); buildMachineFilter(); }
+  } catch(e) { showToast('⚠ 서버 연결 실패', true); }
+}
+
+async function apiPost(url,body) {
+  const r=await fetch(API+url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  return r.json();
+}
+async function apiPut(url,body) {
+  const r=await fetch(API+url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  return r.json();
+}
+async function apiDelete(url) {
+  const r=await fetch(API+url,{method:'DELETE'});
+  return r.json();
+}
+
+async function refreshData() {
+  const btn=document.getElementById('refreshBtn');
+  if(btn) btn.classList.add('loading');
+  await fetchData();
+  if(btn) btn.classList.remove('loading');
+  showToast('✓ 최신 데이터 반영 완료');
+}
+
+// ─── Stats ───
+function updateTopStats() {
+  if(!DATA) return;
+  document.getElementById('ts-products').textContent = DATA.products.length;
+  document.getElementById('ts-bom').textContent = DATA.bom.length;
+  document.getElementById('ts-materials').textContent = DATA.rawMaterials.length;
+  document.getElementById('ts-companies').textContent = DATA.companies.length;
+  document.getElementById('nb-products').textContent = DATA.products.length;
+  document.getElementById('nb-company').textContent = DATA.bom.length;
+  document.getElementById('nb-materials').textContent = DATA.rawMaterials.length;
+}
+
+// ─── Machine filter sidebar ───
+function buildMachineFilter() {
+  if(!DATA) return;
+  const mgs = DATA.machineGroups || Object.keys(MG_CONFIG);
+  const el = document.getElementById('machineFilterList');
+  el.innerHTML = `
+    <div class="machine-chip ${prodMachineGroup==='all'?'active':''}" onclick="setMachineFilter('all')">
+      <div class="machine-dot" style="background:var(--text3)"></div>전체 호기
+    </div>
+    ${mgs.map(mg=>{
+      const c=mgCfg(mg);
+      return `<div class="machine-chip ${prodMachineGroup===mg?'active':''}" onclick="setMachineFilter('${esc(mg)}')" title="${esc(mg)}">
+        <div class="machine-dot" style="background:${c.dot}"></div>${esc(c.short)}
+      </div>`;
+    }).join('')}
+  `;
+}
+
+function setMachineFilter(mg) {
+  prodMachineGroup = mg;
+  companyMachineGroup = mg;
+  buildMachineFilter();
+  render();
+}
+
+// ─── Tab switch ───
+function switchTab(t) {
+  currentTab = t;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('nav-'+t)?.classList.add('active');
+  const titles = {products:'배합 레시피', company:'업체별 BOM', materials:'원재료 DB'};
+  document.getElementById('topbar-title').textContent = titles[t]||t;
+  render();
+}
+
+function render() {
+  if(!DATA) return;
+  if(currentTab==='products') renderProducts();
+  else if(currentTab==='company') renderCompany();
+  else renderMaterials();
+}
+
+// ═══════════════════════════════════════
+// ─── Products Tab ───
+// ═══════════════════════════════════════
+let _searchTimer = null;
+
+function renderProducts() {
+  const content = document.getElementById('content');
+  content.innerHTML = `
+    <div class="content-inner fade-up">
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <input class="input" id="prodSearchInput" placeholder="제품명, PPM 검색...">
+        </div>
+        <div class="filter-group">
+          <span style="font-size:11px;color:var(--text3);font-weight:700">색상</span>
+          ${['all','투명','유백'].map(c=>`<button class="filter-btn ${prodColor===c?'active':''}" onclick="prodColor='${c}';updateProductGrid()">${c==='all'?'전체':c}</button>`).join('')}
+        </div>
+        <div class="filter-group">
+          <button class="btn btn-sm" style="${prodSort?'background:var(--pink-dim);color:var(--pink);border-color:#ec489933':''}" onclick="prodSort=prodSort===1?-1:prodSort===-1?0:1;updateProductGrid()">
+            PPM ${prodSort===1?'▲':prodSort===-1?'▼':'↕'}
+          </button>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="showAddProductModal()">+ 레시피 추가</button>
+      </div>
+      <div class="count-label" id="prodCount"></div>
+      <div class="grid" id="prodGrid"></div>
+    </div>
+  `;
+  const inp = document.getElementById('prodSearchInput');
+  inp.value = prodSearch;
+  inp.addEventListener('input', e => {
+    prodSearch = e.target.value;
+    clearTimeout(_searchTimer);
+    _searchTimer = setTimeout(updateProductGrid, 150);
+  });
+  updateProductGrid();
+}
+
+function updateProductGrid() {
+  let list = DATA.products.filter(p => {
+    if(prodSearch && !p.name.toLowerCase().includes(prodSearch.toLowerCase()) &&
+       !String(p.ppm).includes(prodSearch)) return false;
+    if(prodColor !== 'all' && p.color !== prodColor) return false;
+    if(prodMachineGroup !== 'all' && p.machineGroup !== prodMachineGroup) return false;
+    return true;
+  });
+  if(prodSort !== 0) list.sort((a,b)=>(a.ppm-b.ppm)*prodSort);
+
+  const countEl = document.getElementById('prodCount');
+  if(countEl) {
+    const mgInfo = prodMachineGroup !== 'all' ? ` · <strong>${esc(mgCfg(prodMachineGroup).short)}</strong>` : '';
+    countEl.innerHTML = `<strong>${list.length}</strong>건 표시${mgInfo} / 전체 ${DATA.products.length}건`;
+  }
+
+  const grid = document.getElementById('prodGrid');
+  if(!grid) return;
+  if(!list.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text3)">검색 결과가 없습니다</div>';
+    return;
+  }
+  grid.innerHTML = list.map(p => {
+    const lr = p.layerRatios || {inner:0.333,mid:0.334,outer:0.333};
+    const c = mgCfg(p.machineGroup);
+    const layers = [
+      {v:lr.inner||0, c:'#4f8cff', l:'내'},
+      {v:lr.mid||0,   c:'#34d399', l:'중'},
+      {v:lr.outer||0, c:'#f59e0b', l:'외'},
+      {v:lr.d||0,     c:'#ec4899', l:'D'},
+      {v:lr.e||0,     c:'#a78bfa', l:'E'},
+    ].filter(x=>x.v>0);
+    return `
+      <div class="card" onclick="showProductDetail('${esc(p.seq)}')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">
+          <div class="card-title">${esc(p.name)}</div>
+          <span class="badge ${c.key}" style="flex-shrink:0">${esc(c.short)}</span>
+        </div>
+        <div class="card-meta">
+          <span class="badge badge-blue">PPM ${fmt(p.ppm,0)}</span>
+          <span class="badge ${p.color==='유백'?'badge-amber':'badge-green'}">${esc(p.color||'?')}</span>
+          ${p.layerCount>1?`<span class="badge badge-gray">${p.layerCount}레이어</span>`:''}
+        </div>
+        <div class="layer-bar">
+          ${layers.map(x=>`<div style="width:${x.v*100}%;background:${x.c};transition:width .3s"></div>`).join('')}
+        </div>
+        <div class="card-footer">
+          <span>원재료 ${(p.materials||[]).length}종 · 첨가제 ${(p.additives||[]).length}종</span>
+          ${p.totalCost>0?`<span style="color:var(--blue);font-weight:700">₩${fmt(p.totalCost,0)}</span>`:''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ─── Product Detail Modal ───
+function showProductDetail(seq) {
+  const p = DATA.products.find(x => String(x.seq) === String(seq));
+  if(!p) return;
+  const lr = p.layerRatios || {inner:0.333,mid:0.334,outer:0.333};
+  const t = (lr.inner||0)+(lr.mid||0)+(lr.outer||0)+(lr.d||0)+(lr.e||0);
+  const c = mgCfg(p.machineGroup);
+
+  const getTypeTag = name => {
+    const ti = DATA.materialTypes?.[name];
+    if(!ti) return '';
+    const col = TYPE_COLORS[ti.type] || '#64748b';
+    return `<span style="margin-left:5px;padding:1px 5px;border-radius:4px;font-size:9px;font-weight:700;background:${col}22;color:${col}">${esc(ti.type)}</span>`;
+  };
+
+  const layerHeaders = p.layerCount === 1 ? ['내층'] :
+                       p.layerCount === 2 ? ['내층','외층'] : ['내층','중층','외층','D','E'];
+
+  const matRow = (m, isAdd) => {
+    const vals = [m.inner,m.mid,m.outer,m.d,m.e].slice(0, layerHeaders.length===5?5:layerHeaders.length);
+    return `<tr>
+      <td style="font-weight:600;color:${isAdd?'var(--purple)':'var(--text)'}">${esc(m.name)}${getTypeTag(m.name)}</td>
+      ${vals.map(v=>`<td style="text-align:right;color:${v?'var(--blue)':'var(--text3)'}">${v?pct(v):'-'}</td>`).join('')}
+      <td style="text-align:right;color:${m.ppm>0?'var(--pink)':'var(--text3)'};font-weight:${m.ppm>0?700:400}">${m.ppm>0?fmt(m.ppm,0):'-'}</td>
+      <td style="text-align:right;color:var(--text3)">${m.ppmSub?fmt(m.ppmSub,4):'-'}</td>
+      <td style="text-align:right;color:var(--text2)">${m.price?'₩'+fmt(m.price,1):'-'}</td>
+      <td style="text-align:right;color:var(--text);font-weight:600">${m.cost?'₩'+fmt(m.cost,1):'-'}</td>
+    </tr>`;
+  };
+
+  const layerCols = layerHeaders.map(h=>`<th style="text-align:right">${h}</th>`).join('');
+
+  const modal = document.createElement('div');
+  modal.className = 'overlay';
+  modal.onclick = e => { if(e.target===modal) modal.remove(); };
+  modal.innerHTML = `
+    <div class="modal" style="max-width:960px" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span class="badge ${c.key}">${esc(c.short)}</span>
+            <span class="badge badge-gray">${esc(p.seq)}</span>
+            ${(p.machines||[]).map(m=>`<span class="badge badge-gray" style="font-size:9px">${esc(m)}</span>`).join('')}
+          </div>
+          <div class="modal-title">${esc(p.name)}</div>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <span class="badge badge-blue">PPM ${fmt(p.ppm,1)}</span>
+            <span class="badge ${p.color==='유백'?'badge-amber':'badge-green'}">${esc(p.color||'N/A')}</span>
+            ${p.layerCount>1?`<span class="badge badge-gray">${p.layerCount}레이어</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="btn btn-sm" style="color:var(--blue);border-color:#4f8cff33" onclick="showEditProductModal('${esc(seq)}')">✏️ 수정</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProduct('${esc(seq)}')">삭제</button>
+          <button class="btn btn-ghost btn-sm" onclick="this.closest('.overlay').remove()" style="font-size:18px;padding:4px 8px">✕</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="stats-row">
+          <div class="stat-card" style="border-color:#4f8cff22">
+            <div class="stat-val" style="color:var(--blue)">₩${fmt(p.totalCost,0)}</div>
+            <div class="stat-label">총 원재료비</div>
+          </div>
+          <div class="stat-card" style="border-color:#34d39922">
+            <div class="stat-val" style="color:var(--green)">${(p.materials||[]).length}종</div>
+            <div class="stat-label">원재료</div>
+          </div>
+          <div class="stat-card" style="border-color:#a78bfa22">
+            <div class="stat-val" style="color:var(--purple)">${(p.additives||[]).length}종</div>
+            <div class="stat-label">첨가제</div>
+          </div>
+          ${p.slipInfo?`<div class="stat-card" style="border-color:#ec489922">
+            <div class="stat-val" style="color:var(--pink)">${fmt(p.slipInfo.total,0)}</div>
+            <div class="stat-label">슬립도 (PPM)</div>
+          </div>`:''}
+        </div>
+
+        <div class="section-title green" style="margin-bottom:10px">층 구성 비율</div>
+        <div class="layer-viz" style="margin-bottom:18px">
+          ${t>0?[
+            {l:'내층',v:lr.inner||0,c:'#4f8cff'},
+            {l:'중층',v:lr.mid||0,c:'#34d399'},
+            {l:'외층',v:lr.outer||0,c:'#f59e0b'},
+            {l:'D',v:lr.d||0,c:'#ec4899'},
+            {l:'E',v:lr.e||0,c:'#a78bfa'}
+          ].filter(x=>x.v>0).map(x=>`<div class="layer-seg-full" style="width:${(x.v/t)*100}%;background:${x.c}">${x.l} ${pct(x.v)}</div>`).join('')
+          :'<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:11px">비율 정보 없음</div>'}
+        </div>
+
+        ${p.slipInfo?`
+        <div style="margin-bottom:16px;padding:10px 14px;background:var(--pink-dim);border-radius:var(--radius-sm);border:1px solid #ec489922">
+          <div style="font-size:11px;color:var(--pink);font-weight:700;margin-bottom:4px">슬립도 상세 (PPM)</div>
+          <div style="display:flex;gap:20px;font-size:12px;color:var(--text2)">
+            <span>내층: <strong style="color:var(--text)">${fmt(p.slipInfo.inner,0)}</strong></span>
+            <span>중층: <strong style="color:var(--text)">${fmt(p.slipInfo.mid,0)}</strong></span>
+            <span>외층: <strong style="color:var(--text)">${fmt(p.slipInfo.outer,0)}</strong></span>
+          </div>
+        </div>`:''}
+
+        <div class="section-title" style="margin-bottom:10px">배합 구성</div>
+        <div class="table-wrap" style="margin-bottom:12px">
+          <table>
+            <thead>
+              <tr>
+                <th style="text-align:left">원재료</th>
+                ${layerCols}
+                <th style="text-align:right">PPM</th>
+                <th style="text-align:right">1kg당</th>
+                <th style="text-align:right">원료단가</th>
+                <th style="text-align:right">원재료비</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${(p.materials||[]).map(m=>matRow(m,false)).join('')}
+              ${(p.additives||[]).length?`
+                <tr><td colspan="99" style="padding:4px 12px;font-size:10px;font-weight:700;color:var(--purple);background:var(--purple-dim)">▸ 첨가제</td></tr>
+                ${p.additives.map(m=>matRow(m,true)).join('')}
+              `:''}
+              ${!(p.materials||[]).length?'<tr><td colspan="99" style="text-align:center;padding:20px;color:var(--text3)">원재료 정보 없음</td></tr>':''}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+async function deleteProduct(seq) {
+  if(!confirm('이 배합 레시피를 삭제하시겠습니까?')) return;
+  await apiDelete('/products/'+seq);
+  document.querySelector('.overlay')?.remove();
+  await fetchData();
+  showToast('✓ 삭제 완료');
+}
+
+// ─── Add Product Modal ───
+function showAddProductModal() {
+  const mgs = DATA.machineGroups || Object.keys(MG_CONFIG);
+  const prefixMap = {
+    '1레이어 (1,2호기)':'1','2레이어 (3,7호기)':'2','3레이어 (5호기)':'35',
+    '3레이어 국산 (4,6,8호기)':'3K','3레이어 라이펜 (10,11호기)':'3R','5레이어 (9호기)':'5'
+  };
+  const modal = document.createElement('div');
+  modal.className='overlay';
+  modal.onclick=e=>{if(e.target===modal)modal.remove();};
+  modal.innerHTML=`
+    <div class="modal" style="max-width:560px" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">새 배합 레시피 추가</div>
+        <button class="btn btn-ghost btn-sm" onclick="this.closest('.overlay').remove()" style="font-size:18px;padding:4px 8px">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-item" style="grid-column:1/-1"><div class="form-label">제품명 *</div><input class="input input-sm" id="ap_name" placeholder="예: LLD-신규배합"></div>
+          <div class="form-item"><div class="form-label">PPM *</div><input class="input input-sm" id="ap_ppm" type="number" step="0.01" placeholder="0"></div>
+          <div class="form-item"><div class="form-label">색상</div><select class="input input-sm" id="ap_color"><option value="투명">투명</option><option value="유백">유백</option></select></div>
+          <div class="form-item" style="grid-column:1/-1"><div class="form-label">호기 그룹</div>
+            <select class="input input-sm" id="ap_mg">
+              ${mgs.map(mg=>`<option value="${esc(mg)}">${esc(mg)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="section-title">층 비율</div>
+        <div class="form-grid" style="margin-top:10px">
+          <div class="form-item"><div class="form-label">내층</div><input class="input input-sm" id="ap_inner" type="number" step="0.001" value="0.333"></div>
+          <div class="form-item"><div class="form-label">중층</div><input class="input input-sm" id="ap_mid" type="number" step="0.001" value="0.334"></div>
+          <div class="form-item"><div class="form-label">외층</div><input class="input input-sm" id="ap_outer" type="number" step="0.001" value="0.333"></div>
+          <div class="form-item"><div class="form-label">D층</div><input class="input input-sm" id="ap_d" type="number" step="0.001" value="0"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="this.closest('.overlay').remove()">취소</button>
+        <button class="btn btn-primary" onclick="submitAddProduct()">추가</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+async function submitAddProduct() {
+  const name=document.getElementById('ap_name').value.trim();
+  const ppm=parseFloat(document.getElementById('ap_ppm').value)||0;
+  const color=document.getElementById('ap_color').value;
+  const mg=document.getElementById('ap_mg').value;
+  if(!name){showToast('제품명을 입력해주세요',true);return;}
+  const prefixMap={'1레이어 (1,2호기)':'1','2레이어 (3,7호기)':'2','3레이어 (5호기)':'35','3레이어 국산 (4,6,8호기)':'3K','3레이어 라이펜 (10,11호기)':'3R','5레이어 (9호기)':'5'};
+  const p={name,ppm,color,machineGroup:mg,machinePrefix:prefixMap[mg]||'1',machines:[],layerCount:1,
+    layerRatios:{inner:parseFloat(document.getElementById('ap_inner').value)||0.333,mid:parseFloat(document.getElementById('ap_mid').value)||0.334,outer:parseFloat(document.getElementById('ap_outer').value)||0.333,d:parseFloat(document.getElementById('ap_d').value)||0},
+    materials:[],additives:[],totalCost:0,slipInfo:null};
+  await apiPost('/products',p);
+  document.querySelector('.overlay')?.remove();
+  await fetchData();
+  showToast('✓ 레시피 추가 완료');
+}
+
+// ─── Edit Product Modal ───
+let _matRowIdx = 200;
+function showEditProductModal(seq) {
+  document.querySelector('.overlay')?.remove();
+  const p=DATA.products.find(x=>String(x.seq)===String(seq));
+  if(!p) return;
+  const lr=p.layerRatios||{inner:0.333,mid:0.334,outer:0.333};
+
+  const matEditRow=(m,prefix)=>`
+    <tr id="${prefix}_row_${_matRowIdx}">
+      <td><input class="input input-xs" value="${esc(m.name)}" data-field="name" style="min-width:110px"></td>
+      <td><input class="input input-xs" value="${m.inner||0}" data-field="inner" type="number" step="0.001" style="width:60px"></td>
+      <td><input class="input input-xs" value="${m.mid||0}" data-field="mid" type="number" step="0.001" style="width:60px"></td>
+      <td><input class="input input-xs" value="${m.outer||0}" data-field="outer" type="number" step="0.001" style="width:60px"></td>
+      <td><input class="input input-xs" value="${m.ppm||0}" data-field="ppm" type="number" step="0.01" style="width:60px"></td>
+      <td><input class="input input-xs" value="${m.price||0}" data-field="price" type="number" step="0.1" style="width:70px"></td>
+      <td><button class="btn btn-danger btn-xs" onclick="this.closest('tr').remove()">✕</button></td>
+    </tr>
+  `;
+
+  const modal=document.createElement('div');
+  modal.className='overlay';
+  modal.onclick=e=>{if(e.target===modal)modal.remove();};
+  modal.innerHTML=`
+    <div class="modal" style="max-width:900px" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">배합 레시피 수정 <span style="color:var(--text3);font-size:13px">${esc(seq)}</span></div>
+        <button class="btn btn-ghost btn-sm" onclick="this.closest('.overlay').remove()" style="font-size:18px;padding:4px 8px">✕</button>
+      </div>
+      <div class="modal-body" style="max-height:70vh">
+        <div class="form-grid">
+          <div class="form-item" style="grid-column:1/-1"><div class="form-label">제품명</div><input class="input input-sm" id="ep_name" value="${esc(p.name)}"></div>
+          <div class="form-item"><div class="form-label">PPM</div><input class="input input-sm" id="ep_ppm" type="number" step="0.01" value="${p.ppm}"></div>
+          <div class="form-item"><div class="form-label">색상</div><select class="input input-sm" id="ep_color"><option value="투명" ${p.color==='투명'?'selected':''}>투명</option><option value="유백" ${p.color==='유백'?'selected':''}>유백</option></select></div>
+          <div class="form-item"><div class="form-label">총 원재료비</div><input class="input input-sm" id="ep_cost" type="number" step="0.01" value="${p.totalCost||0}"></div>
+          <div class="form-item"></div>
+        </div>
+        <div class="form-grid" style="grid-template-columns:repeat(5,1fr)">
+          <div class="form-item"><div class="form-label">내층</div><input class="input input-sm" id="ep_inner" type="number" step="0.001" value="${lr.inner}"></div>
+          <div class="form-item"><div class="form-label">중층</div><input class="input input-sm" id="ep_mid" type="number" step="0.001" value="${lr.mid}"></div>
+          <div class="form-item"><div class="form-label">외층</div><input class="input input-sm" id="ep_outer" type="number" step="0.001" value="${lr.outer}"></div>
+          <div class="form-item"><div class="form-label">D층</div><input class="input input-sm" id="ep_d" type="number" step="0.001" value="${lr.d||0}"></div>
+          <div class="form-item"><div class="form-label">E층</div><input class="input input-sm" id="ep_e" type="number" step="0.001" value="${lr.e||0}"></div>
+        </div>
+        <div class="section-title" style="margin-top:8px">원재료</div>
+        <div class="table-wrap" style="margin-bottom:8px;margin-top:8px">
+          <table>
+            <thead><tr><th style="text-align:left">원재료명</th><th>내층</th><th>중층</th><th>외층</th><th>PPM</th><th>단가</th><th></th></tr></thead>
+            <tbody id="ep_mat_body">${(p.materials||[]).map(m=>{ const r=matEditRow(m,'em'); _matRowIdx++; return r; }).join('')}</tbody>
+          </table>
+        </div>
+        <button class="btn btn-sm" onclick="addEditMatRow('ep_mat_body','em')" style="margin-bottom:16px">+ 원재료 추가</button>
+        <div class="section-title purple">첨가제</div>
+        <div class="table-wrap" style="margin-bottom:8px;margin-top:8px">
+          <table>
+            <thead><tr><th style="text-align:left">첨가제명</th><th>내층</th><th>중층</th><th>외층</th><th>PPM</th><th>단가</th><th></th></tr></thead>
+            <tbody id="ep_add_body">${(p.additives||[]).map(m=>{ const r=matEditRow(m,'ea'); _matRowIdx++; return r; }).join('')}</tbody>
+          </table>
+        </div>
+        <button class="btn btn-sm" onclick="addEditMatRow('ep_add_body','ea')">+ 첨가제 추가</button>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="this.closest('.overlay').remove()">취소</button>
+        <button class="btn btn-primary" onclick="submitEditProduct('${esc(seq)}')">저장</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function addEditMatRow(bodyId, prefix) {
+  const idx=_matRowIdx++;
+  const tbody=document.getElementById(bodyId);
+  const tr=document.createElement('tr');
+  tr.id=`${prefix}_row_${idx}`;
+  tr.innerHTML=`
+    <td><input class="input input-xs" value="" data-field="name" style="min-width:110px" placeholder="원재료명"></td>
+    <td><input class="input input-xs" value="0" data-field="inner" type="number" step="0.001" style="width:60px"></td>
+    <td><input class="input input-xs" value="0" data-field="mid" type="number" step="0.001" style="width:60px"></td>
+    <td><input class="input input-xs" value="0" data-field="outer" type="number" step="0.001" style="width:60px"></td>
+    <td><input class="input input-xs" value="0" data-field="ppm" type="number" step="0.01" style="width:60px"></td>
+    <td><input class="input input-xs" value="0" data-field="price" type="number" step="0.1" style="width:70px"></td>
+    <td><button class="btn btn-danger btn-xs" onclick="this.closest('tr').remove()">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function collectMatRows(bodyId) {
+  const rows=document.querySelectorAll('#'+bodyId+' tr');
+  const result=[];
+  rows.forEach(tr=>{
+    const name=tr.querySelector('[data-field="name"]')?.value?.trim();
+    if(!name) return;
+    const e={name};
+    ['inner','mid','outer','d','e','ppm','price'].forEach(f=>{
+      const v=parseFloat(tr.querySelector(`[data-field="${f}"]`)?.value)||0;
+      if(v) e[f]=v;
+    });
+    result.push(e);
+  });
+  return result;
+}
+
+async function submitEditProduct(seq) {
+  const p=DATA.products.find(x=>String(x.seq)===String(seq));
+  if(!p) return;
+  const updated={...p,
+    name:document.getElementById('ep_name').value.trim(),
+    ppm:parseFloat(document.getElementById('ep_ppm').value)||0,
+    color:document.getElementById('ep_color').value,
+    totalCost:parseFloat(document.getElementById('ep_cost').value)||0,
+    layerRatios:{
+      inner:parseFloat(document.getElementById('ep_inner').value)||0,
+      mid:parseFloat(document.getElementById('ep_mid').value)||0,
+      outer:parseFloat(document.getElementById('ep_outer').value)||0,
+      d:parseFloat(document.getElementById('ep_d').value)||0,
+      e:parseFloat(document.getElementById('ep_e').value)||0,
+    },
+    materials:collectMatRows('ep_mat_body'),
+    additives:collectMatRows('ep_add_body'),
+  };
+  await apiPut('/products/'+seq, updated);
+  document.querySelector('.overlay')?.remove();
+  await fetchData();
+  showToast('✓ 저장 완료');
+}
+
+
+// ═══════════════════════════════════════
+// ─── Company Tab ───
+// ═══════════════════════════════════════
+function renderCompany() {
+  const content=document.getElementById('content');
+  content.innerHTML=`
+    <div class="content-inner fade-up">
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <input class="input" id="coSearchInput" placeholder="업체명, 제품명 검색...">
+        </div>
+        <div class="filter-group">
+          <span style="font-size:11px;color:var(--text3);font-weight:700">색상</span>
+          ${['all','투명','유백'].map(c=>`<button class="filter-btn ${prodColor===c?'active':''}" onclick="prodColor='${c}';updateCompanyView()">${c==='all'?'전체':c}</button>`).join('')}
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="showAddBomModal()">+ BOM 추가</button>
+      </div>
+      <div class="count-label" id="coCount"></div>
+      <div id="coList"></div>
+    </div>
+  `;
+  const inp=document.getElementById('coSearchInput');
+  inp.value=companySearch;
+  inp.addEventListener('input', e=>{
+    companySearch=e.target.value;
+    clearTimeout(_searchTimer);
+    _searchTimer=setTimeout(updateCompanyView,150);
+  });
+  updateCompanyView();
+}
+
+function updateCompanyView() {
+  let bom=DATA.bom.filter(b=>{
+    if(companySearch && !b.company?.toLowerCase().includes(companySearch.toLowerCase()) &&
+       !b.product?.toLowerCase().includes(companySearch.toLowerCase())) return false;
+    if(prodColor!=='all' && b.color!==prodColor) return false;
+    if(companyMachineGroup!=='all' && b.machineGroup!==companyMachineGroup &&
+       (!b.machines||!b.machines.includes(companyMachineGroup))) return false;
+    return true;
+  });
+
+  // 업체별 그룹핑
+  const byCompany={};
+  bom.forEach(b=>{
+    const co=b.company||'(미지정)';
+    if(!byCompany[co]) byCompany[co]=[];
+    byCompany[co].push(b);
+  });
+
+  const coCount=document.getElementById('coCount');
+  if(coCount) {
+    const mgInfo=companyMachineGroup!=='all'?` · <strong>${esc(mgCfg(companyMachineGroup).short)}</strong>`:'';
+    coCount.innerHTML=`업체 <strong>${Object.keys(byCompany).length}</strong>곳 · 제품 <strong>${bom.length}</strong>건${mgInfo}`;
+  }
+
+  const el=document.getElementById('coList');
+  if(!el) return;
+  if(!bom.length){
+    el.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3)">검색 결과가 없습니다</div>';
+    return;
+  }
+
+  el.innerHTML=Object.entries(byCompany).sort((a,b)=>a[0].localeCompare(b[0],'ko')).map(([co,items])=>`
+    <div class="company-block">
+      <div class="company-header" onclick="toggleCompany('${esc(co)}')">
+        <div class="company-header-left">
+          <div class="company-name">${esc(co)}</div>
+          <span class="badge badge-gray">${items.length}종</span>
+          ${[...new Set(items.map(x=>x.machineGroup).filter(Boolean))].slice(0,3).map(mg=>mgBadge(mg,true)).join('')}
+        </div>
+        <span style="color:var(--text3);font-size:14px" id="arrow_${esc(co)}">▼</span>
+      </div>
+      <div class="company-body" id="body_${esc(co)}">
+        ${items.map(b=>{
+          const c=mgCfg(b.machineGroup);
+          const prodObj=DATA.products.find(p=>String(p.seq)===String(b.productSeq));
+          return `<button class="product-chip" onclick="showBomDetail(${JSON.stringify(JSON.stringify(b)).replace(/"/g,'&quot;')})">
+            <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start">
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-weight:700">${esc(b.product)}</span>
+                ${b.machineGroup?`<span class="badge ${c.key}" style="font-size:9px">${esc(c.short)}</span>`:''}
+              </div>
+              <div style="display:flex;gap:6px;font-size:10px;color:var(--text3)">
+                <span>${fmt(b.ppm,0)} PPM</span>
+                ${b.color?`<span>·</span><span>${esc(b.color)}</span>`:''}
+                ${b.lossRate?`<span>·</span><span>로스 ${(b.lossRate*100).toFixed(0)}%</span>`:''}
+              </div>
+            </div>
+          </button>`;
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+const _collapsed={};
+function toggleCompany(co) {
+  const body=document.getElementById('body_'+co);
+  const arrow=document.getElementById('arrow_'+co);
+  if(!body) return;
+  _collapsed[co]=!_collapsed[co];
+  body.style.display=_collapsed[co]?'none':'flex';
+  if(arrow) arrow.textContent=_collapsed[co]?'▶':'▼';
+}
+
+function showBomDetail(jsonStr) {
+  let b;
+  try{b=JSON.parse(jsonStr);}catch{return;}
+  const prodObj=DATA.products.find(p=>String(p.seq)===String(b.productSeq));
+  const c=mgCfg(b.machineGroup);
+  const modal=document.createElement('div');
+  modal.className='overlay';
+  modal.onclick=e=>{if(e.target===modal)modal.remove();};
+  modal.innerHTML=`
+    <div class="modal" style="max-width:600px" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            ${b.machineGroup?`<span class="badge ${c.key}">${esc(c.short)}</span>`:''}
+            ${b.color?`<span class="badge ${b.color==='유백'?'badge-amber':'badge-green'}">${esc(b.color)}</span>`:''}
+          </div>
+          <div class="modal-title">${esc(b.company)} · ${esc(b.product)}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-danger btn-sm" onclick="deleteBomEntry(${JSON.stringify(JSON.stringify(b)).replace(/"/g,'&quot;')})">삭제</button>
+          <button class="btn btn-ghost btn-sm" onclick="this.closest('.overlay').remove()" style="font-size:18px;padding:4px 8px">✕</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="stats-row">
+          <div class="stat-card" style="border-color:#4f8cff22">
+            <div class="stat-val" style="color:var(--blue)">${fmt(b.ppm,1)}</div>
+            <div class="stat-label">PPM</div>
+          </div>
+          ${b.lossRate?`<div class="stat-card" style="border-color:#34d39922">
+            <div class="stat-val" style="color:var(--green)">${(b.lossRate*100).toFixed(1)}%</div>
+            <div class="stat-label">로스율</div>
+          </div>`:''}
+          ${b.productivity?`<div class="stat-card" style="border-color:#a78bfa22">
+            <div class="stat-val" style="color:var(--purple)">${(b.productivity*100).toFixed(1)}%</div>
+            <div class="stat-label">생산성</div>
+          </div>`:''}
+        </div>
+        ${b.machineGroup?`<div style="margin-bottom:12px;padding:10px 14px;background:${c.key?'var(--surface2)':'var(--surface2)'};border-radius:var(--radius-sm);border:1px solid var(--border2)">
+          <div style="font-size:11px;color:var(--text3);font-weight:700;margin-bottom:4px">호기 정보</div>
+          <div style="font-size:13px;color:var(--text)">${esc(b.machineGroup)}</div>
+          ${(b.machines||[]).length?`<div style="display:flex;gap:4px;margin-top:6px">${(b.machines||[]).map(m=>`<span class="badge badge-gray">${esc(m)}</span>`).join('')}</div>`:''}
+        </div>`:''}
+        ${prodObj?`
+        <div class="section-title" style="margin-bottom:10px">연결된 배합 레시피</div>
+        <div style="padding:12px 14px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);cursor:pointer" onclick="this.closest('.overlay').remove();showProductDetail('${esc(prodObj.seq)}')">
+          <div style="font-weight:700;color:#fff">${esc(prodObj.name)}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">PPM ${fmt(prodObj.ppm,1)} · 원재료 ${(prodObj.materials||[]).length}종 · ₩${fmt(prodObj.totalCost,0)} →</div>
+        </div>`:''}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+async function deleteBomEntry(jsonStr) {
+  let b;
+  try{b=JSON.parse(jsonStr);}catch{return;}
+  if(!confirm('이 BOM 항목을 삭제하시겠습니까?')) return;
+  await apiPost('/bom/delete', b);
+  document.querySelector('.overlay')?.remove();
+  await fetchData();
+  showToast('✓ 삭제 완료');
+}
+
+function showAddBomModal() {
+  const modal=document.createElement('div');
+  modal.className='overlay';
+  modal.onclick=e=>{if(e.target===modal)modal.remove();};
+  const mgs=DATA.machineGroups||Object.keys(MG_CONFIG);
+  modal.innerHTML=`
+    <div class="modal" style="max-width:520px" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">BOM 항목 추가</div>
+        <button class="btn btn-ghost btn-sm" onclick="this.closest('.overlay').remove()" style="font-size:18px;padding:4px 8px">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-item"><div class="form-label">업체명 *</div><input class="input input-sm" id="ab_company" list="ab_co_list" placeholder="업체명 입력">
+            <datalist id="ab_co_list">${DATA.companies.map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
+          </div>
+          <div class="form-item"><div class="form-label">제품명 *</div><input class="input input-sm" id="ab_product" list="ab_prod_list" placeholder="제품명 입력">
+            <datalist id="ab_prod_list">${DATA.productNames.map(p=>`<option value="${esc(p)}">`).join('')}</datalist>
+          </div>
+          <div class="form-item"><div class="form-label">PPM</div><input class="input input-sm" id="ab_ppm" type="number" step="0.01" placeholder="0"></div>
+          <div class="form-item"><div class="form-label">색상</div><select class="input input-sm" id="ab_color"><option value="투명">투명</option><option value="유백">유백</option></select></div>
+          <div class="form-item" style="grid-column:1/-1"><div class="form-label">호기 그룹</div>
+            <select class="input input-sm" id="ab_mg">
+              <option value="">-- 미지정 --</option>
+              ${mgs.map(mg=>`<option value="${esc(mg)}">${esc(mg)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-item"><div class="form-label">로스율</div><input class="input input-sm" id="ab_lr" type="number" step="0.001" placeholder="0.03"></div>
+          <div class="form-item"><div class="form-label">생산성</div><input class="input input-sm" id="ab_prod" type="number" step="0.001" placeholder="1.0"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="this.closest('.overlay').remove()">취소</button>
+        <button class="btn btn-primary" onclick="submitAddBom()">추가</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+async function submitAddBom() {
+  const co=document.getElementById('ab_company').value.trim();
+  const prod=document.getElementById('ab_product').value.trim();
+  if(!co||!prod){showToast('업체명과 제품명을 입력해주세요',true);return;}
+  const mg=document.getElementById('ab_mg').value;
+  const prefixMap={'1레이어 (1,2호기)':'1','2레이어 (3,7호기)':'2','3레이어 (5호기)':'35','3레이어 국산 (4,6,8호기)':'3K','3레이어 라이펜 (10,11호기)':'3R','5레이어 (9호기)':'5'};
+  const prefix=prefixMap[mg]||'';
+  const machinesMap={'1':['1호기','2호기'],'2':['3호기','7호기'],'35':['5호기'],'3K':['4호기','6호기','8호기'],'3R':['10호기','11호기'],'5':['9호기']};
+  const b={company:co,product:prod,ppm:parseFloat(document.getElementById('ab_ppm').value)||0,color:document.getElementById('ab_color').value,machineGroup:mg,machines:machinesMap[prefix]||[],lossRate:parseFloat(document.getElementById('ab_lr').value)||0,productivity:parseFloat(document.getElementById('ab_prod').value)||0};
+  await apiPost('/bom',b);
+  document.querySelector('.overlay')?.remove();
+  await fetchData();
+  showToast('✓ BOM 추가 완료');
+}
+
+
+// ═══════════════════════════════════════
+// ─── Materials Tab ───
+// ═══════════════════════════════════════
+function renderMaterials() {
+  const content=document.getElementById('content');
+  content.innerHTML=`
+    <div class="content-inner fade-up">
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <input class="input" id="matSearchInput" placeholder="원재료명, 업체명, 유형 검색...">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="showAddMatModal()">+ 원재료 추가</button>
+      </div>
+      <div class="count-label" id="matCount"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align:left;cursor:pointer" onclick="sortMat('name')">원재료명 ${matSortKey==='name'?matSortDir===1?'▲':'▼':''}</th>
+              <th onclick="sortMat('type')">유형 ${matSortKey==='type'?matSortDir===1?'▲':'▼':''}</th>
+              <th onclick="sortMat('price')" style="text-align:right">단가 ${matSortKey==='price'?matSortDir===1?'▲':'▼':''}</th>
+              <th>업체명</th>
+              <th>MI</th>
+              <th>밀도</th>
+              <th style="text-align:right">슬립(PPM)</th>
+              <th style="text-align:right">PPA(PPM)</th>
+              <th style="text-align:right">AB(PPM)</th>
+              <th style="text-align:right">AO(PPM)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="matBody"></tbody>
+        </table>
+      </div>
+    </div>
+  `;
+  const inp=document.getElementById('matSearchInput');
+  inp.value=matSearch;
+  inp.addEventListener('input',e=>{matSearch=e.target.value;clearTimeout(_searchTimer);_searchTimer=setTimeout(updateMatTable,150);});
+  updateMatTable();
+}
+
+function sortMat(key) {
+  if(matSortKey===key) matSortDir*=-1;
+  else{matSortKey=key;matSortDir=1;}
+  updateMatTable();
+}
+
+function updateMatTable() {
+  let list=DATA.rawMaterials.filter(m=>{
+    if(!matSearch) return true;
+    const s=matSearch.toLowerCase();
+    return m.name?.toLowerCase().includes(s)||m.company?.toLowerCase().includes(s)||
+      (DATA.materialTypes?.[m.name]?.type||'').toLowerCase().includes(s);
+  });
+  const getType=n=>DATA.materialTypes?.[n]?.type||'';
+  list.sort((a,b)=>{
+    let av,bv;
+    if(matSortKey==='price'){av=a.price;bv=b.price;}
+    else if(matSortKey==='type'){av=getType(a.name);bv=getType(b.name);}
+    else{av=a.name;bv=b.name;}
+    if(typeof av==='string') return av.localeCompare(bv,'ko')*matSortDir;
+    return (av-bv)*matSortDir;
+  });
+  const countEl=document.getElementById('matCount');
+  if(countEl) countEl.innerHTML=`<strong>${list.length}</strong>종 표시 / 전체 ${DATA.rawMaterials.length}종`;
+  const tbody=document.getElementById('matBody');
+  if(!tbody) return;
+  tbody.innerHTML=list.map(m=>{
+    const ti=DATA.materialTypes?.[m.name];
+    const col=ti?TYPE_COLORS[ti.type]||'#64748b':'';
+    return `<tr>
+      <td style="font-weight:600;color:var(--text)">${esc(m.name)}</td>
+      <td>${ti?`<span class="badge" style="background:${col}18;color:${col};border:1px solid ${col}22">${esc(ti.type)}</span>`:'-'}</td>
+      <td style="text-align:right;font-weight:700;color:var(--blue)">₩${fmt(m.price,0)}</td>
+      <td style="color:var(--text2)">${esc(m.company)||'-'}</td>
+      <td style="color:var(--text3)">${esc(m.mi)||'-'}</td>
+      <td style="color:var(--text3)">${esc(m.density)||'-'}</td>
+      <td style="text-align:right;color:${m.slip?'var(--cyan)':'var(--text3)'}">${m.slip?fmt(m.slip,0):'-'}</td>
+      <td style="text-align:right;color:${m.ppa?'var(--pink)':'var(--text3)'}">${m.ppa?fmt(m.ppa,0):'-'}</td>
+      <td style="text-align:right;color:${m.ab?'var(--amber)':'var(--text3)'}">${m.ab?fmt(m.ab,0):'-'}</td>
+      <td style="text-align:right;color:${m.ao?'var(--green)':'var(--text3)'}">${m.ao?fmt(m.ao,0):'-'}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-sm btn-ghost" onclick="showEditMatModal('${esc(m.name)}')">✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteMaterial('${esc(m.name)}')">✕</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function showAddMatModal() {
+  const modal=document.createElement('div');
+  modal.className='overlay';
+  modal.onclick=e=>{if(e.target===modal)modal.remove();};
+  modal.innerHTML=`
+    <div class="modal" style="max-width:560px" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">원재료 추가</div>
+        <button class="btn btn-ghost btn-sm" onclick="this.closest('.overlay').remove()" style="font-size:18px;padding:4px 8px">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-item" style="grid-column:1/-1"><div class="form-label">원재료명 *</div><input class="input input-sm" id="am_name"></div>
+          <div class="form-item"><div class="form-label">단가 (원/kg) *</div><input class="input input-sm" id="am_price" type="number" step="0.1"></div>
+          <div class="form-item"><div class="form-label">업체명</div><input class="input input-sm" id="am_company"></div>
+          <div class="form-item"><div class="form-label">유형</div><input class="input input-sm" id="am_type" placeholder="LLDPE, LDPE, mLLDPE..."></div>
+          <div class="form-item"><div class="form-label">MI</div><input class="input input-sm" id="am_mi"></div>
+          <div class="form-item"><div class="form-label">밀도</div><input class="input input-sm" id="am_density"></div>
+          <div class="form-item"><div class="form-label">슬립제 (PPM)</div><input class="input input-sm" id="am_slip" type="number" value="0"></div>
+          <div class="form-item"><div class="form-label">PPA (PPM)</div><input class="input input-sm" id="am_ppa" type="number" value="0"></div>
+          <div class="form-item"><div class="form-label">AB제 (PPM)</div><input class="input input-sm" id="am_ab" type="number" value="0"></div>
+          <div class="form-item"><div class="form-label">AO제 (PPM)</div><input class="input input-sm" id="am_ao" type="number" value="0"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="this.closest('.overlay').remove()">취소</button>
+        <button class="btn btn-primary" onclick="submitAddMat()">추가</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+async function submitAddMat() {
+  const name=document.getElementById('am_name').value.trim();
+  const price=parseFloat(document.getElementById('am_price').value)||0;
+  if(!name){showToast('원재료명을 입력해주세요',true);return;}
+  await apiPost('/materials',{name,price,company:document.getElementById('am_company').value.trim(),mi:document.getElementById('am_mi').value.trim(),density:document.getElementById('am_density').value.trim(),slip:parseFloat(document.getElementById('am_slip').value)||0,ppa:parseFloat(document.getElementById('am_ppa').value)||0,ab:parseFloat(document.getElementById('am_ab').value)||0,ao:parseFloat(document.getElementById('am_ao').value)||0});
+  // materialType 등록 요청 구성
+  document.querySelector('.overlay')?.remove();
+  await fetchData();
+  showToast('✓ 원재료 추가 완료');
+}
+
+function showEditMatModal(name) {
+  const m=DATA.rawMaterials.find(x=>x.name===name);
+  if(!m) return;
+  const ti=DATA.materialTypes?.[name]||{};
+  const modal=document.createElement('div');
+  modal.className='overlay';
+  modal.onclick=e=>{if(e.target===modal)modal.remove();};
+  modal.innerHTML=`
+    <div class="modal" style="max-width:560px" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">원재료 수정</div>
+        <button class="btn btn-ghost btn-sm" onclick="this.closest('.overlay').remove()" style="font-size:18px;padding:4px 8px">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-item" style="grid-column:1/-1"><div class="form-label">원재료명</div><input class="input input-sm" id="em_name" value="${esc(m.name)}"></div>
+          <div class="form-item"><div class="form-label">단가 (원/kg)</div><input class="input input-sm" id="em_price" type="number" step="0.1" value="${m.price}"></div>
+          <div class="form-item"><div class="form-label">업체명</div><input class="input input-sm" id="em_company" value="${esc(m.company||'')}"></div>
+          <div class="form-item"><div class="form-label">유형</div><input class="input input-sm" id="em_type" value="${esc(ti.type||'')}"></div>
+          <div class="form-item"><div class="form-label">MI</div><input class="input input-sm" id="em_mi" value="${esc(m.mi||'')}"></div>
+          <div class="form-item"><div class="form-label">밀도</div><input class="input input-sm" id="em_density" value="${esc(m.density||'')}"></div>
+          <div class="form-item"><div class="form-label">슬립제 (PPM)</div><input class="input input-sm" id="em_slip" type="number" value="${m.slip||0}"></div>
+          <div class="form-item"><div class="form-label">PPA (PPM)</div><input class="input input-sm" id="em_ppa" type="number" value="${m.ppa||0}"></div>
+          <div class="form-item"><div class="form-label">AB제 (PPM)</div><input class="input input-sm" id="em_ab" type="number" value="${m.ab||0}"></div>
+          <div class="form-item"><div class="form-label">AO제 (PPM)</div><input class="input input-sm" id="em_ao" type="number" value="${m.ao||0}"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="this.closest('.overlay').remove()">취소</button>
+        <button class="btn btn-primary" onclick="submitEditMat('${esc(name)}')">저장</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+async function submitEditMat(origName) {
+  const updated={
+    originalName:origName,
+    name:document.getElementById('em_name').value.trim(),
+    price:parseFloat(document.getElementById('em_price').value)||0,
+    company:document.getElementById('em_company').value.trim(),
+    mi:document.getElementById('em_mi').value.trim(),
+    density:document.getElementById('em_density').value.trim(),
+    slip:parseFloat(document.getElementById('em_slip').value)||0,
+    ppa:parseFloat(document.getElementById('em_ppa').value)||0,
+    ab:parseFloat(document.getElementById('em_ab').value)||0,
+    ao:parseFloat(document.getElementById('em_ao').value)||0,
+    materialType:document.getElementById('em_type').value.trim(),
+    materialMaker:document.getElementById('em_company').value.trim(),
+  };
+  await apiPost('/materials/update',updated);
+  document.querySelector('.overlay')?.remove();
+  await fetchData();
+  showToast('✓ 저장 완료');
+}
+
+async function deleteMaterial(name) {
+  if(!confirm(`'${name}' 원재료를 삭제하시겠습니까?`)) return;
+  await apiPost('/materials/delete',{name});
+  await fetchData();
+  showToast('✓ 삭제 완료');
+}
+
+
+// ─── Excel Upload Modal ───
+function showUploadModal() {
+  const modal=document.createElement('div');
+  modal.className='overlay';
+  modal.onclick=e=>{if(e.target===modal)modal.remove();};
+  modal.innerHTML=`
+    <div class="modal" style="max-width:480px" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">📁 엑셀 업로드</div>
+        <button class="btn btn-ghost btn-sm" onclick="this.closest('.overlay').remove()" style="font-size:18px;padding:4px 8px">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="padding:20px;border:2px dashed var(--border2);border-radius:var(--radius);text-align:center;margin-bottom:16px">
+          <div style="font-size:32px;margin-bottom:8px">📊</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text)">BOM 취합 엑셀 파일 선택</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">시트 구성: BOM 작성용, BOM 산출, 원재료비 데이터</div>
+          <input type="file" id="xlsxFile" accept=".xlsx,.xls" style="display:none">
+          <button class="btn btn-primary" style="margin-top:12px" onclick="document.getElementById('xlsxFile').click()">파일 선택</button>
+          <div id="xlsxFileName" style="font-size:11px;color:var(--text2);margin-top:8px"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text3);background:var(--surface2);border-radius:var(--radius-sm);padding:10px 14px">
+          ⚠ 업로드 시 기존 데이터가 교체됩니다. 백업이 자동으로 생성됩니다.
+        </div>
+        <div id="uploadResult" style="margin-top:10px"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="this.closest('.overlay').remove()">닫기</button>
+        <button class="btn btn-primary" id="uploadBtn" onclick="uploadExcel()" disabled>업로드 실행</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  document.getElementById('xlsxFile').addEventListener('change',e=>{
+    const f=e.target.files[0];
+    if(f){
+      document.getElementById('xlsxFileName').textContent='선택: '+f.name;
+      document.getElementById('uploadBtn').disabled=false;
+    }
+  });
+}
+
+async function uploadExcel() {
+  const f=document.getElementById('xlsxFile')?.files[0];
+  if(!f) return;
+  const btn=document.getElementById('uploadBtn');
+  btn.disabled=true;btn.textContent='업로드 중...';
+  const fd=new FormData();fd.append('file',f);
+  try{
+    const r=await fetch(API+'/upload-excel',{method:'POST',body:fd});
+    const res=await r.json();
+    if(res.ok){
+      document.getElementById('uploadResult').innerHTML=`<div style="color:var(--green);font-size:12px;font-weight:700">✓ 완료! 레시피 ${res.products}개, BOM ${res.bom}개 반영</div>`;
+      await fetchData();
+      showToast('✓ 엑셀 데이터 반영 완료');
+    } else {
+      document.getElementById('uploadResult').innerHTML=`<div style="color:var(--red);font-size:12px">오류: ${esc(res.error)}</div>`;
+    }
+  }catch(e){
+    document.getElementById('uploadResult').innerHTML=`<div style="color:var(--red);font-size:12px">서버 오류</div>`;
+  }
+  btn.disabled=false;btn.textContent='업로드 실행';
+}
+
+// ─── Init ───
+fetchData();
+</script>
+</body>
+</html>
